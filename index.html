@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="全本機離線運算，支援 HEIC/PNG/WebP 轉 JPG。自動優化畫質與尺寸，專為 Excel 自動化系統設計。">
+    <meta name="author" content="LiangHao">
+    <title>警務影像轉換器 | LiangHao Dev</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <meta property="og:title" content="警務影像轉換器 | LiangHao Dev">
+    <meta property="og:description" content="全本機離線運算，支援 HEIC/PNG/WebP 轉 JPG。自動優化畫質與尺寸。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://lianghao02.github.io/police-image-converter/">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Noto+Sans+TC:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS (Local Build) -->
+    <link href="./output.css" rel="stylesheet">
+    <style>
+        /* Custom scrollbar for file list if needed, though Tailwind has plugins for this, simple CSS is fine */
+        .file-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .file-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .file-list::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .file-list::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+
+    <!-- 引入必要的函式庫 -->
+    <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+</head>
+
+<body class="bg-bg text-[#333] font-sans flex justify-center pt-10 px-4 mb-10 min-h-screen">
+    <div
+        class="container w-full max-w-[700px] bg-card-bg p-10 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.1)] text-center transition-transform duration-200">
+        <h1 class="text-3xl font-bold text-primary mb-2.5"><i class="fa-solid fa-camera mr-2"></i>警務專用影像轉換器</h1>
+        <p class="text-[#7f8c8d] text-[0.95em] mb-7 leading-relaxed">全本機離線運算，支援 HEIC/PNG/WebP 轉 JPG。<br>自動優化畫質與尺寸，專為
+            Excel 自動化系統設計。</p>
+
+        <!-- Usage Guide Section -->
+        <section
+            class="usage-guide flex flex-col md:flex-row justify-center items-center mb-6 bg-[#f8fafc] p-4 rounded-xl border border-slate-200 gap-4 md:gap-0 relative">
+            <div class="step flex flex-col items-center gap-2 text-[#333]">
+                <div
+                    class="step-icon text-[1.2rem] text-accent bg-white w-9 h-9 flex items-center justify-center rounded-full shadow-sm">
+                    <i class="fa-solid fa-print"></i>
+                </div>
+                <span class="text-[0.85rem] font-semibold">1. 選擇畫質</span>
+            </div>
+            <div class="step-arrow hidden md:block text-slate-300 mx-4 text-sm">
+                <i class="fa-solid fa-chevron-right"></i>
+            </div>
+            <div class="step flex flex-col items-center gap-2 text-[#333]">
+                <div
+                    class="step-icon text-[1.2rem] text-accent bg-white w-9 h-9 flex items-center justify-center rounded-full shadow-sm">
+                    <i class="fa-solid fa-images"></i>
+                </div>
+                <span class="text-[0.85rem] font-semibold">2. 上傳圖片</span>
+            </div>
+            <div class="step-arrow hidden md:block text-slate-300 mx-4 text-sm">
+                <i class="fa-solid fa-chevron-right"></i>
+            </div>
+            <div class="step flex flex-col items-center gap-2 text-[#333]">
+                <div
+                    class="step-icon text-[1.2rem] text-accent bg-white w-9 h-9 flex items-center justify-center rounded-full shadow-sm">
+                    <i class="fa-solid fa-rocket"></i>
+                </div>
+                <span class="text-[0.85rem] font-semibold">3. 開始轉換</span>
+            </div>
+
+            <!-- 齒輪按鈕移動至此 -->
+            <button id="btnToggleConfig"
+                class="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-primary transition-colors hover:rotate-45 duration-300"
+                title="進階設定">
+                <i class="fa-solid fa-gear text-lg"></i>
+            </button>
+        </section>
+
+        <div
+            class="settings-panel w-full bg-[#f8f9fa] border border-[#e9ecef] rounded-xl p-[15px_20px] mb-5 flex flex-col lg:flex-row items-center justify-between gap-4 lg:gap-6">
+
+            <!-- DPI 選擇組 (靠左) -->
+            <div class="flex flex-col md:flex-row items-center gap-3 w-full lg:w-auto">
+                <label class="font-bold text-primary flex items-center gap-2 whitespace-nowrap"><i
+                        class="fa-solid fa-print"></i>
+                    輸出畫質(DPI)</label>
+                <div id="dpiButtonGroup"
+                    class="flex flex-wrap md:flex-nowrap gap-1 bg-white p-1 rounded-lg border border-[#ced4da] w-full md:w-auto">
+                    <button type="button" data-value="96"
+                        class="dpi-btn flex-1 py-1.5 px-4 rounded-md transition-all duration-200 border border-transparent hover:bg-slate-50 text-slate-600 flex flex-col items-center min-w-fit">
+                        <span class="text-base font-bold">96</span>
+                        <span class="text-xs opacity-80 whitespace-nowrap">螢幕用</span>
+                    </button>
+                    <button type="button" data-value="150"
+                        class="dpi-btn flex-1 py-1.5 px-4 rounded-md transition-all duration-200 border border-transparent hover:bg-slate-50 text-slate-600 flex flex-col items-center min-w-fit">
+                        <span class="text-base font-bold">150</span>
+                        <span class="text-xs opacity-80 whitespace-nowrap">一般文件</span>
+                    </button>
+                    <button type="button" data-value="220"
+                        class="dpi-btn flex-1 py-1.5 px-4 rounded-md transition-all duration-200 bg-accent text-white shadow-sm border-accent flex flex-col items-center min-w-fit"
+                        data-active="true">
+                        <span class="text-base font-bold">220</span>
+                        <span class="text-xs opacity-90 whitespace-nowrap">推薦列印</span>
+                    </button>
+                    <button type="button" data-value="300"
+                        class="dpi-btn flex-1 py-1.5 px-4 rounded-md transition-all duration-200 border border-transparent hover:bg-slate-50 text-slate-600 flex flex-col items-center min-w-fit">
+                        <span class="text-base font-bold">300</span>
+                        <span class="text-xs opacity-80 whitespace-nowrap">極致清晰</span>
+                    </button>
+                </div>
+            </div>
+
+
+
+            <!-- 自動銳化與進階按鈕 -->
+            <div class="flex items-center gap-4 lg:gap-5">
+                <label class="flex items-center gap-2 cursor-pointer group whitespace-nowrap">
+                    <input type="checkbox" id="chkSharpen"
+                        class="w-4 h-4 rounded border-gray-300 text-accent focus:ring-accent" checked>
+                    <span
+                        class="text-sm font-medium text-slate-600 group-hover:text-primary transition-colors">自動銳化</span>
+                </label>
+
+
+            </div>
+        </div>
+
+        <!-- 背景遮罩 (Overlay) -->
+        <div id="configOverlay"
+            class="fixed inset-0 bg-black/40 z-[90] hidden opacity-0 transition-opacity duration-300">
+        </div>
+
+        <!-- 進階設定面板 (側邊抽屜) -->
+        <div id="configPanel"
+            class="fixed top-0 right-0 h-full w-[320px] bg-white shadow-[-10px_0_30px_rgba(0,0,0,0.1)] z-[100] transform translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col pointer-events-none data-[open=true]:translate-x-0 data-[open=true]:pointer-events-auto">
+
+            <!-- 抽屜標題列 -->
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
+                <h3 class="text-base font-bold text-primary flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-accent"></i> 進階參數微調
+                </h3>
+                <button id="btnCloseConfig" class="text-slate-400 hover:text-danger transition-colors p-1"
+                    aria-label="關閉設定">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- 滾動內容區 -->
+            <div class="flex-1 overflow-y-auto pr-1 -mr-1 space-y-8">
+                <!-- 恢復預設值按鈕 -->
+                <div class="flex justify-start">
+                    <button id="btnResetConfig" class="text-[12px] text-accent hover:underline flex items-center gap-1">
+                        <i class="fa-solid fa-rotate-left"></i> 恢復預設值
+                    </button>
+                </div>
+
+                <!-- 參數調整項 (垂直排列) -->
+                <div class="space-y-7">
+                    <!-- 重疊像素 -->
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-baseline">
+                            <label class="text-[13px] font-bold text-slate-700">分割重疊區域</label>
+                            <span id="cfg-overlap-val" class="text-[13px] font-mono font-bold text-accent">150</span>
+                        </div>
+                        <input type="range" id="cfg-overlap" min="0" max="400" step="10" aria-label="分割重疊區域"
+                            class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent">
+                        <p class="text-[11px] text-slate-400 leading-normal">
+                            增加：分割處重疊變多，文字更不易被切斷。<br>
+                            減少：縮短總圖片長度。
+                        </p>
+                    </div>
+
+                    <!-- 銳化強度 -->
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-baseline">
+                            <label class="text-[13px] font-bold text-slate-700">銳化混合強度</label>
+                            <span id="cfg-sharpen-val" class="text-[13px] font-mono font-bold text-accent">0.3</span>
+                        </div>
+                        <input type="range" id="cfg-sharpen" min="0" max="0.8" step="0.05" aria-label="銳化混合強度"
+                            class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent">
+                        <p class="text-[11px] text-slate-400 leading-normal">
+                            增加：文字邊緣更清晰銳利。<br>
+                            減少：畫面較柔和自然。
+                        </p>
+                    </div>
+
+                    <!-- 長截圖判定比例 -->
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-baseline">
+                            <label class="text-[13px] font-bold text-slate-700">長截圖判定敏感度</label>
+                            <span id="cfg-threshold-val" class="text-[13px] font-mono font-bold text-accent">2.5</span>
+                        </div>
+                        <input type="range" id="cfg-threshold" min="1.5" max="5" step="0.1" aria-label="長截圖判定敏感度"
+                            class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent">
+                        <p class="text-[11px] text-slate-400 leading-normal">
+                            增加：更嚴格，僅極長的圖才執行分割。<br>
+                            減少：較容易觸發自動分割邏輯。
+                        </p>
+                    </div>
+
+                    <!-- JPEG 輸出品質 -->
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-baseline">
+                            <label class="text-[13px] font-bold text-slate-700">JPEG 壓縮品質</label>
+                            <span id="cfg-quality-val" class="text-[13px] font-mono font-bold text-accent">0.95</span>
+                        </div>
+                        <input type="range" id="cfg-quality" min="0.5" max="1" step="0.01" aria-label="JPEG 壓縮品質"
+                            class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent">
+                        <p class="text-[11px] text-slate-400 leading-normal">
+                            增加：畫質清晰，但檔案體積較大。<br>
+                            減少：節省空間，但可能出現雜訊。
+                        </p>
+                    </div>
+
+                    <!-- A4 模擬寬度 -->
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-baseline">
+                            <label class="text-[13px] font-bold text-slate-700">模擬 A4 列印寬度 (cm)</label>
+                            <span id="cfg-a4width-val" class="text-[13px] font-mono font-bold text-accent">20</span>
+                        </div>
+                        <input type="range" id="cfg-a4width" min="10" max="30" step="1" aria-label="模擬A4列印寬度"
+                            class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent">
+                        <p class="text-[11px] text-slate-400 leading-normal">
+                            增加：寬度增加，總像素量變多。<br>
+                            減少：縮小圖片以符合更小的紙張。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 頁尾提醒 -->
+            <div class="mt-auto pt-6 border-t border-slate-50">
+                <p class="text-[11px] text-slate-400 italic text-center leading-normal">
+                    變更將自動儲存於瀏覽器，<br>下次開啟時直接套用。
+                </p>
+            </div>
+        </div>
+
+        <div class="upload-area border-[3px] border-dashed border-[#cbd5e0] rounded-xl p-10 cursor-pointer bg-white transition-all duration-300 relative overflow-hidden group hover:border-accent hover:bg-[#ebf8ff] hover:-translate-y-0.5"
+            id="dropArea">
+            <div class="upload-icon text-5xl text-accent mb-2.5 group-hover:scale-110 transition-transform"><i
+                    class="fa-solid fa-folder-open"></i></div>
+            <div class="upload-text text-lg text-[#4a5568] font-medium">點擊選取 或 拖曳照片至此</div>
+            <div class="upload-subtext text-[13px] text-[#a0aec0] mt-1.5">支援 JPG, HEIC, PNG, BMP, WebP (可多選)</div>
+        </div>
+        <input type="file" id="fileInput" multiple accept="image/*, .heic" class="hidden" aria-label="上傳圖片">
+
+        <div class="file-list-container mt-5 text-left bg-white border border-[#eee] rounded-xl p-2.5 max-h-[150px] overflow-y-auto hidden file-list"
+            id="fileList"></div>
+
+        <div class="btn-group flex flex-col md:flex-row gap-4 mt-6">
+            <button id="btnConvert"
+                class="btn btn-primary bg-success text-white hover:bg-[#219150] border-none py-3 px-5 rounded-xl text-[15px] font-semibold cursor-pointer transition-all duration-200 flex-1 flex items-center justify-center gap-2 opacity-60 pointer-events-none data-[active=true]:opacity-100 data-[active=true]:pointer-events-auto data-[active=true]:shadow-md">
+                <span><i class="fa-solid fa-rocket"></i> 開始轉換</span>
+            </button>
+            <button id="btnReconvert"
+                class="btn btn-warning bg-warning text-white hover:bg-[#d35400] border-none py-3 px-5 rounded-xl text-[15px] font-semibold cursor-pointer transition-all duration-200 flex-1 flex items-center justify-center gap-2 hidden">
+                <span><i class="fa-solid fa-rotate"></i> 重新轉換</span>
+            </button>
+            <button id="btnClear"
+                class="btn btn-danger bg-danger text-white hover:bg-[#a93226] border-none py-3 px-5 rounded-xl text-[15px] font-semibold cursor-pointer transition-all duration-200 flex-[0.5] flex items-center justify-center gap-2 opacity-60 pointer-events-none data-[active=true]:opacity-100 data-[active=true]:pointer-events-auto data-[active=true]:shadow-md">
+                <span><i class="fa-solid fa-trash-can"></i> 清除重置</span>
+            </button>
+        </div>
+
+        <div class="progress-container mt-6 hidden" id="progressArea">
+            <div class="progress-bar-bg w-full bg-[#e2e8f0] h-2.5 rounded-full overflow-hidden">
+                <div class="progress-fill h-full w-0 bg-accent transition-[width] duration-300 rounded-full"
+                    id="progressBar"></div>
+            </div>
+            <p class="status-text mt-2.5 text-sm text-[#4a5568] font-semibold" id="statusText">準備就緒</p>
+        </div>
+
+        <footer class="mt-10 text-center text-[#7f8c8d] text-sm pt-5 border-t border-[#ecf0f1]">
+            <p>&copy; 2025 警務影像轉換器. 版權所有.</p>
+        </footer>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
