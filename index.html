@@ -21,36 +21,23 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Noto+Sans+TC:wght@400;700&display=swap"
         rel="stylesheet">
 
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- FontAwesome (本地引用) -->
+    <link rel="stylesheet" href="assets/lib/all.min.css">
 
-    <!-- Tailwind CSS -->
     <!-- Tailwind CSS (Local Build) -->
     <link href="./output.css" rel="stylesheet">
-    <style>
-        /* Custom scrollbar for file list if needed, though Tailwind has plugins for this, simple CSS is fine */
-        .file-list::-webkit-scrollbar {
-            width: 8px;
-        }
 
-        .file-list::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="style.css">
 
-        .file-list::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
+    <!-- 影像處理函式庫 (本地引用，避免追蹤警告) -->
+    <script src="assets/lib/heic2any.min.js"></script>
+    <script src="assets/lib/jszip.min.js"></script>
+    <script src="assets/lib/FileSaver.min.js"></script>
 
-        .file-list::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-    </style>
-
-    <!-- 引入必要的函式庫 -->
-    <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <!-- Config & Main Script -->
+    <script src="config.js" defer></script>
+    <script src="script.js" defer></script>
 </head>
 
 <body class="bg-bg text-[#333] font-sans flex justify-center pt-10 px-4 mb-10 min-h-screen">
@@ -298,7 +285,6 @@
             <p>&copy; 2025 警務影像轉換器. 版權所有.</p>
         </footer>
     </div>
-    <script src="script.js"></script>
 </body>
 
 </html>
