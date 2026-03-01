@@ -25,7 +25,7 @@
 ## ✨ 功能特色
 
 | 功能 | 說明 |
-|---|---|
+| --- | --- |
 | **格式支援** | JPG, PNG, WebP, BMP, HEIC (iPhone 原生格式) |
 | **智慧縮放** | 根據 DPI 與 A4 標準寬度自動換算像素，確保插圖不失真 |
 | **長截圖切片** | 自動偵測超長截圖並切割成多張，避免文字被截斷 |
@@ -38,7 +38,7 @@
 ## 🛠️ 技術棧
 
 | 分類 | 使用技術 |
-|---|---|
+| --- | --- |
 | **UI 框架** | [Tailwind CSS](https://tailwindcss.com/) (CDN) |
 | **圖示** | [Font Awesome 6](https://fontawesome.com/) (CDN) |
 | **HEIC 解碼** | [heic2any](https://github.com/alexcorvi/heic2any) (CDN) |
