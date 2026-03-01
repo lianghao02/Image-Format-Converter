@@ -1,45 +1,53 @@
-# 🚔 Police Image Converter (警務專用圖片處理助手)
+# 🚔 警務專用影像轉換器 (v3.2)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-![Version](https://img.shields.io/badge/Version-v3.1-green)
-![Features](https://img.shields.io/badge/Feature-Auto%20Resize-blue)
-![Features](https://img.shields.io/badge/Feature-DPI%20Selection-orange)
+![Version](https://img.shields.io/badge/版本-v3.2-green)
+![Architecture](https://img.shields.io/badge/架構-單一檔案-blue)
+![Offline](https://img.shields.io/badge/運算-全本機離線-orange)
 
-這是一個專為警務行政工作設計的**離線版**圖片處理工具。
-它不僅能轉換 **HEIC/PNG/WebP** 格式，還能自動將圖片**縮放至符合 Word/Excel 表格的最佳尺寸**，大幅簡化後續製作筆錄的工作。
-
----
-
-## ✨ v3.1 重大更新
-
-* **🖨️ 自訂 DPI (DPI Selection)**：新增 DPI 選單，可依需求選擇 **96 (螢幕用)**、**150 (一般文件)**、**220 (標準列印)** 或 **300 (高畫質)**。
-* **📏 智慧縮放**：以 **20公分** 為基準自動計算最佳像素，確保插入 Word/Excel 時不會過大或模糊。
-* **⚡ 統一轉換流程**：不再區分照片或截圖模式，系統自動判斷並進行最佳化處理。
-* **🎨 介面優化**：全新的現代化 UI，支援拖曳上傳與進度條顯示。
-* **🛠️ 程式碼重構**：將 HTML/CSS/JS 分離，提升維護性與效能。
-
-## 🌟 核心特色
-
-* **🔒 絕對資安**：全本機 (Client-side) 運算，照片**絕不**上傳伺服器，完全符合資安規定。
-* **📱 廣泛支援**：解決 iPhone HEIC 無法讀取問題，並修正 PNG 透明背景。
-* **📦 一鍵打包**：處理完成後，自動將所有圖片打包成 ZIP 下載，檔名自動編號防重複。
-
-## 🛠️ 使用教學
-
-1. **選擇畫質**：依據用途選擇合適的 DPI (預設為 220 DPI，適合大多數列印需求)。
-2. **上傳圖片**：點擊框框或將照片拖曳至網頁中 (支援多選)。
-3. **開始轉換**：點擊「🚀 開始轉換」按鈕。
-4. **下載檔案**：等待進度條跑完，系統會自動下載 ZIP 壓縮檔。
-5. **直接使用**：解壓縮後的圖片已是標準 JPG 格式且尺寸適中，可直接插入文書軟體。
-
-## 🔧 技術規格
-
-* **基準尺寸**：長邊約 20cm (依 DPI 自動換算像素)
-* **輸出格式**：標準 JPEG (品質 92%, 白底去背)
-* **支援輸入**：JPG, HEIC, PNG, BMP, WebP
+專為警務行政工作設計的**離線版圖片處理工具**，直接開啟 `index.html` 即可使用，無需安裝任何軟體，亦無需連線至伺服器。
 
 ---
 
-## 📄 License
+## 🚀 快速開始
+
+1. **下載專案**：Clone 或下載此 Repository。
+2. **開啟工具**：直接用瀏覽器（Chrome / Edge 建議）開啟 `index.html`。
+3. **選擇畫質**：依用途選擇 DPI（預設 220，適合大多數列印需求）。
+4. **上傳圖片**：點擊上傳框或將圖片拖曳進去（支援多選）。
+5. **開始轉換**：點擊「🚀 開始轉換」。
+6. **下載成果**：等進度條跑完後，點擊「📦 下載圖片 (ZIP)」。
+
+> 解壓縮後的 JPG 格式圖片，尺寸已針對 Word / Excel 表格插圖最佳化，可直接使用。
+
+---
+
+## ✨ 功能特色
+
+| 功能 | 說明 |
+|---|---|
+| **格式支援** | JPG, PNG, WebP, BMP, HEIC (iPhone 原生格式) |
+| **智慧縮放** | 根據 DPI 與 A4 標準寬度自動換算像素，確保插圖不失真 |
+| **長截圖切片** | 自動偵測超長截圖並切割成多張，避免文字被截斷 |
+| **自動銳化** | 可選的 3x3 卷積銳化濾鏡，強化文字清晰度 |
+| **進階設定** | 側邊抽屜式設定面板，所有參數均可調整並自動儲存 |
+| **絕對離線** | 純前端運算，照片絕不上傳伺服器 |
+
+---
+
+## 🛠️ 技術棧
+
+| 分類 | 使用技術 |
+|---|---|
+| **UI 框架** | [Tailwind CSS](https://tailwindcss.com/) (CDN) |
+| **圖示** | [Font Awesome 6](https://fontawesome.com/) (CDN) |
+| **HEIC 解碼** | [heic2any](https://github.com/alexcorvi/heic2any) (CDN) |
+| **ZIP 封裝** | [JSZip](https://stuk.github.io/jszip/) (CDN) |
+| **檔案下載** | [FileSaver.js](https://github.com/eligrey/FileSaver.js/) (CDN) |
+| **架構** | 單一 HTML 檔案交付，無需建置流程 |
+
+---
+
+## 📄 授權
 
 [MIT License](LICENSE)
