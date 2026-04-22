@@ -1,0 +1,18 @@
+{
+  "id": "police-image-expert",
+  "name": "警務影像處理專家",
+  "version": "1.2.0",
+  "description": "專精於 Web 畫布運算、HEIC 轉檔、長截圖智慧分段與離線蒐證影像優化。",
+  "author": "Tech Lead (梁巡官)",
+  "triggers": {
+    "intents": ["image_processing", "canvas_manipulation", "heic_conversion", "client_side_zip"],
+    "file_extensions": [".html", ".js"]
+  },
+  "capabilities": ["canvas_convolution_filter", "async_blob_processing", "local_storage_persistence"],
+  "settings": {
+    "priority": "high",
+    "enforce_language": "zh-TW",
+    "framework_preference": "Tailwind_CSS"
+  },
+  "instruction_file": "instructions.md"
+}

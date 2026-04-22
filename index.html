@@ -398,10 +398,87 @@
                 aria-label="模擬A4列印寬度"
                 class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent"
               />
-              <p class="text-[11px] text-slate-400 leading-normal">
-                增加：寬度增加，總像素量變多。<br />
-                減少：縮小圖片以符合更小的紙張。
-              </p>
+            </div>
+
+            <div class="pt-4 border-t border-slate-100">
+              <h4 class="text-[12px] font-bold text-slate-400 mb-4 uppercase tracking-wider">影片截圖設定</h4>
+              
+              <!-- 影片擷取靈敏度 -->
+              <div class="space-y-3 mb-6">
+                <div class="flex justify-between items-baseline">
+                  <label class="text-[13px] font-bold text-slate-700"
+                    >擷取靈敏度 (變動率)</label
+                  >
+                  <span
+                    id="cfg-video-delta-val"
+                    class="text-[13px] font-mono font-bold text-accent"
+                    >5</span
+                  >
+                </div>
+                <input
+                  type="range"
+                  id="cfg-video-delta"
+                  min="1"
+                  max="20"
+                  step="1"
+                  aria-label="影片擷取靈敏度"
+                  class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent"
+                />
+                <p class="text-[11px] text-slate-400 leading-normal">
+                  較小：極微小變動即擷取 (多圖)<br />
+                  較大：僅在大範圍變動時擷取 (精簡)
+                </p>
+              </div>
+
+              <!-- 影片取樣間隔 -->
+              <div class="space-y-3">
+                <div class="flex justify-between items-baseline">
+                  <label class="text-[13px] font-bold text-slate-700"
+                    >掃描間隔 (秒)</label
+                  >
+                  <span
+                    id="cfg-video-step-val"
+                    class="text-[13px] font-mono font-bold text-accent"
+                    >0.5</span
+                  >
+                </div>
+                <input
+                  type="range"
+                  id="cfg-video-step"
+                  min="0.1"
+                  max="2.0"
+                  step="0.1"
+                  aria-label="影片掃描間隔"
+                  class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent"
+                />
+              </div>
+
+              <!-- 分頁重疊比例 (新增) -->
+              <div class="space-y-3 pt-6 border-t border-slate-50">
+                <div class="flex justify-between items-baseline">
+                  <label class="text-[13px] font-bold text-slate-700"
+                    >分頁重疊比例 (%)</label
+                  >
+                  <span
+                    id="cfg-video-overlap-val"
+                    class="text-[13px] font-mono font-bold text-accent"
+                    >20</span
+                  >
+                </div>
+                <input
+                  type="range"
+                  id="cfg-video-overlap"
+                  min="0"
+                  max="50"
+                  step="5"
+                  aria-label="分頁重疊比例"
+                  class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent"
+                />
+                <p class="text-[11px] text-slate-400 leading-normal">
+                  增加：截圖間重複內容增多，易於對筆。<br />
+                  減少：減少冗餘頁面。
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -430,16 +507,16 @@
           點擊選取 或 拖曳照片至此
         </div>
         <div class="upload-subtext text-[13px] text-[#a0aec0] mt-1.5">
-          支援 JPG, HEIC, PNG, BMP, WebP (可多選)
+          支援 JPG, HEIC, PNG, MP4, MOV (可多選)
         </div>
       </div>
       <input
         type="file"
         id="fileInput"
         multiple
-        accept="image/*, .heic"
+        accept="image/*, video/*, .heic"
         class="hidden"
-        aria-label="上傳圖片"
+        aria-label="上傳圖片或影片"
       />
 
       <!-- 檔案清單 -->
@@ -513,6 +590,9 @@
           a4WidthCm: 20, // 目標 A4 寬度 (20cm)
           sharpenMix: 0.3, // 銳化混合強度 (0.3)
           outputQuality: 0.95, // JPEG 輸出品質 (0.95)
+          videoDelta: 5, // 影片擷取靈敏度 (5%)
+          videoStep: 0.3, // 影片掃描間隔 (0.3s)
+          videoOverlap: 20, // 影片分頁重疊比例 (20%)
         },
 
         // 支援的檔案類型說明
@@ -522,6 +602,9 @@
           "image/webp",
           "image/heic",
           "image/bmp",
+          "video/mp4",
+          "video/webm",
+          "video/quicktime",
         ],
 
         // 支援的副檔名 (用於過濾)
@@ -532,6 +615,9 @@
           ".webp",
           ".heic",
           ".bmp",
+          ".mp4",
+          ".mov",
+          ".webm",
         ],
 
         // DPI 選項及其用途描述
@@ -835,11 +921,12 @@
             progressBar.style.width = `${(i / selectedFiles.length) * 100}%`;
 
             try {
-              const results = await processSingleImage(
-                file,
-                targetWidthPx,
-                isSharpenEnabled,
-              );
+              let results = [];
+              if (file.type.startsWith("video/") || [".mp4", ".mov", ".webm"].some(ext => file.name.toLowerCase().endsWith(ext))) {
+                results = await processVideoFile(file, targetWidthPx, isSharpenEnabled);
+              } else {
+                results = await processSingleImage(file, targetWidthPx, isSharpenEnabled);
+              }
               processedImages.push(...results);
               successCount++;
             } catch (err) {
@@ -847,7 +934,7 @@
             }
           }
 
-          statusText.innerText = `✅ 成功處理 ${successCount} 張，生成 ${processedImages.length} 張切片。`;
+          statusText.innerText = `✅ 成功處理 ${successCount} 個檔案，生成 ${processedImages.length} 張切片。`;
           progressBar.style.width = "100%";
 
           btnConvert.classList.add("hidden");
@@ -955,6 +1042,264 @@
             };
             img.onerror = () => reject(new Error("載入圖片發生錯誤"));
             img.src = URL.createObjectURL(currentBlob);
+          });
+        }
+
+        /**
+         * 處理影片檔案：自動擷取對話影格
+         */
+        async function processVideoFile(file, targetWidthPx, isSharpenEnabled) {
+          return new Promise((resolve, reject) => {
+            const video = document.createElement("video");
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d", { willReadFrequently: true });
+            const results = [];
+            const url = URL.createObjectURL(file);
+
+            video.src = url;
+            video.muted = true;
+            video.playsInline = true;
+
+            video.onloadedmetadata = async () => {
+              const duration = video.duration;
+              const step = config.videoStep;
+              const threshold = config.videoDelta;
+              
+              const baseName = file.name.replace(/\.[^/.]+$/, "");
+              canvas.width = video.videoWidth;
+              canvas.height = video.videoHeight;
+              
+              const scale = targetWidthPx / video.videoWidth;
+              const targetHeight = Math.floor(video.videoHeight * scale);
+
+              // --- 位移偵測變數 ---
+              let lastStrip = null;
+              let lastImageData = null; 
+              let lastCapturedImageData = null; // 新增：用於比對是否有重複存檔
+              let accumulatorDY = 0;
+              let currentTime = 0;
+              let frameIndex = 1;
+              let stableCount = 0;
+              
+              // 觸發擷取的位移門檻 (像素) = 畫面高度 * (1 - 重疊率)
+              const pageThreshold = video.videoHeight * (1 - config.videoOverlap / 100);
+
+              try {
+                // 初始影格 (0.0s) 必擷取
+                video.currentTime = 0;
+                await new Promise(r => (video.onseeked = r));
+                ctx.drawImage(video, 0, 0);
+                const firstBlob = await captureFrame(canvas, targetWidthPx, targetHeight, isSharpenEnabled);
+                results.push(createFrameResult(baseName, frameIndex++, firstBlob, targetWidthPx, targetHeight));
+                lastStrip = getVerticalStrip(ctx, canvas.width, canvas.height);
+                lastImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                lastCapturedImageData = lastImageData; // 紀錄為第一張存檔內容
+
+                currentTime += step;
+
+                while (currentTime <= duration) {
+                  const seekTime = Math.min(currentTime, duration);
+                  video.currentTime = seekTime;
+                  await new Promise(r => (video.onseeked = r));
+
+                  ctx.drawImage(video, 0, 0);
+                  const currentImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                  const currentStrip = getVerticalStrip(ctx, canvas.width, canvas.height, currentImageData);
+                  
+                  // 估算位移 dy
+                  let dy = estimateVerticalShift(lastStrip, currentStrip, canvas.height, threshold);
+                  
+                  // --- 「失蹤補位」機制 ---
+                  // 如果比對誤差太高代表標記跟丟了 (滑太快超過雷達範圍)
+                  if (dy === 0) {
+                    const changed = isFrameChanged(lastImageData, currentImageData, threshold);
+                    if (changed) {
+                      // 補償改為 55%，降低總體張數，同時保持內容連續性
+                      dy = Math.floor(canvas.height * 0.55); 
+                    }
+                  }
+
+                  accumulatorDY += Math.abs(dy);
+                  lastImageData = currentImageData; 
+
+                  let shouldCapture = false;
+
+                  // 條件 A: 累計位移達標 (滿一頁)
+                  if (accumulatorDY >= pageThreshold) {
+                    shouldCapture = true;
+                  } 
+                  // 條件 B: 畫面長時間停止，且位移至少過了一半螢幕 (50%)
+                  // 防止在原地不斷重複擷取高度相似的照片
+                  else if (Math.abs(dy) < 2) {
+                    stableCount++;
+                    if (stableCount >= 2 && accumulatorDY > video.videoHeight * 0.5) {
+                      shouldCapture = true;
+                    }
+                  } else {
+                    stableCount = 0;
+                  }
+
+                  // 執行擷取
+                  if (shouldCapture || seekTime >= duration) {
+                    // --- 智能重複圖攔截 ---
+                    // 與「上一張成功存檔」進行比對，變動率過低 (< 5%) 則跳過
+                    const isDuplicate = !isFrameChanged(lastCapturedImageData, currentImageData, 5);
+                    
+                    if (!isDuplicate || seekTime >= duration) {
+                      const blob = await captureFrame(canvas, targetWidthPx, targetHeight, isSharpenEnabled);
+                      results.push(createFrameResult(baseName, frameIndex++, blob, targetWidthPx, targetHeight));
+                      lastCapturedImageData = currentImageData; // 更新最末存檔紀錄
+                      accumulatorDY = 0;
+                    } 
+                    // 冗餘處理：若位移已達標但內容相同，重置部分位移避免陷入卡死重複
+                    else if (accumulatorDY >= pageThreshold) {
+                      accumulatorDY = Math.floor(pageThreshold * 0.3); 
+                    }
+                    stableCount = 0;
+                  }
+
+                  lastStrip = currentStrip;
+
+                  if (currentTime >= duration) break;
+                  currentTime += step;
+                  if (currentTime > duration && currentTime - step < duration) currentTime = duration;
+                  
+                  statusText.innerText = `⏳ 像素位移分析 (${Math.round((seekTime/duration)*100)}%)：${file.name}`;
+                }
+                URL.revokeObjectURL(url);
+                resolve(results);
+              } catch (e) {
+                URL.revokeObjectURL(url);
+                reject(e);
+              }
+            };
+
+            video.onerror = () => {
+              URL.revokeObjectURL(url);
+              reject(new Error("影片載入失敗"));
+            };
+          });
+        }
+
+        /**
+         * 輔助函式：包裝影格結果物件
+         */
+        function createFrameResult(baseName, index, blob, w, h) {
+          return {
+            name: `${baseName}_page_${String(index).padStart(3, "0")}.jpg`,
+            blob: blob,
+            width: w,
+            height: h,
+          };
+        }
+
+        /**
+         * 輔助函式：執行單一影格擷取
+         */
+        async function captureFrame(canvas, dw, dh, isSharpen) {
+          return await generateProcessedBlobFromCanvas(canvas, dw, dh, isSharpen);
+        }
+
+        /**
+         * 擷取中央垂直條特徵 (用於位移偵測)
+         */
+        function getVerticalStrip(ctx, w, h, existingImageData) {
+          const stripWidth = 16;
+          const x = Math.floor(w / 2 - stripWidth / 2);
+          const imageData = existingImageData || ctx.getImageData(x, 0, stripWidth, h);
+          const data = imageData.data;
+          const strip = new Uint8Array(h);
+          
+          const isFullImage = imageData.width === w;
+
+          for (let y = 0; y < h; y++) {
+            let sum = 0;
+            for (let i = 0; i < stripWidth; i++) {
+              const baseIdx = isFullImage 
+                ? (y * w + (x + i)) * 4 
+                : (y * stripWidth + i) * 4;
+              sum += data[baseIdx] * 0.299 + data[baseIdx+1] * 0.587 + data[baseIdx+2] * 0.114;
+            }
+            strip[y] = sum / stripWidth;
+          }
+          return strip;
+        }
+
+        /**
+         * 估算兩影格間的垂直位移 dy (Sliding Window SAD)
+         */
+        function estimateVerticalShift(oldStrip, newStrip, h, threshold) {
+          let minSAD = Infinity;
+          let bestDY = 0;
+          const searchRange = Math.floor(h * 0.7); 
+          const step = 2;
+
+          for (let dy = -searchRange; dy <= searchRange; dy += step) {
+            let sad = 0;
+            let count = 0;
+            const sampleCount = 60; 
+            const sampleStep = Math.max(1, Math.floor(h / sampleCount));
+
+            for (let y = 0; y < h; y += sampleStep) {
+              const targetY = y + dy;
+              if (targetY >= 0 && targetY < h) {
+                sad += Math.abs(oldStrip[y] - newStrip[targetY]);
+                count++;
+              }
+            }
+            sad /= count;
+            if (sad < minSAD) {
+              minSAD = sad;
+              bestDY = dy;
+            }
+          }
+
+          if (minSAD > 50) return 0;
+          return bestDY;
+        }
+
+        /**
+         * 比較兩個影格的差異百分比 (用於失蹤補位偵測)
+         */
+        function isFrameChanged(prev, curr, threshold) {
+          if (!prev || !curr) return false;
+          const p = prev.data;
+          const c = curr.data;
+          let diff = 0;
+          const sampleStep = 32; 
+          let count = 0;
+
+          for (let i = 0; i < p.length; i += sampleStep) {
+            const pLuma = p[i] * 0.299 + p[i+1] * 0.587 + p[i+2] * 0.114;
+            const cLuma = c[i] * 0.299 + c[i+1] * 0.587 + c[i+2] * 0.114;
+            if (Math.abs(pLuma - cLuma) > 30) {
+              diff++;
+            }
+            count++;
+          }
+          const changeRatio = (diff / count) * 100;
+          return changeRatio > threshold;
+        }
+
+        /**
+         * 直接從 Canvas 生成處理後的 Blob
+         */
+        async function generateProcessedBlobFromCanvas(sourceCanvas, dw, dh, doSharpen) {
+          const outCanvas = document.createElement("canvas");
+          outCanvas.width = dw;
+          outCanvas.height = dh;
+          const outCtx = outCanvas.getContext("2d");
+
+          outCtx.imageSmoothingEnabled = true;
+          outCtx.imageSmoothingQuality = "high";
+          outCtx.drawImage(sourceCanvas, 0, 0, sourceCanvas.width, sourceCanvas.height, 0, 0, dw, dh);
+
+          if (doSharpen) {
+            applySharpenFilter(outCtx, dw, dh, config.sharpenMix);
+          }
+
+          return new Promise(resolve => {
+            outCanvas.toBlob(resolve, "image/jpeg", config.outputQuality);
           });
         }
 
@@ -1084,6 +1429,9 @@
             "cfg-a4width": "a4WidthCm",
             "cfg-sharpen": "sharpenMix",
             "cfg-quality": "outputQuality",
+            "cfg-video-delta": "videoDelta",
+            "cfg-video-step": "videoStep",
+            "cfg-video-overlap": "videoOverlap",
           };
 
           for (let domId in mapping) {
