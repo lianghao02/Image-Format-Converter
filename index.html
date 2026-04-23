@@ -9,7 +9,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta
       name="description"
-      content="全本機離線運算，支援 HEIC/PNG/WebP 轉 JPG。自動優化畫質與尺寸，專為 Excel 自動化系統設計。"
+      content="全本機離線運算，支援 HEIC/PNG/WebP 轉 JPG。保留原始像素，專為 Excel 自動化系統設計。"
     />
     <meta name="author" content="LiangHao" />
     <title>警務影像轉換器 | LiangHao Dev</title>
@@ -17,7 +17,7 @@
     <meta property="og:title" content="警務影像轉換器 | LiangHao Dev" />
     <meta
       property="og:description"
-      content="全本機離線運算，支援 HEIC/PNG/WebP 轉 JPG。自動優化畫質與尺寸。"
+      content="全本機離線運算，支援 HEIC/PNG/WebP 轉 JPG。保留原始像素。"
     />
     <meta property="og:type" content="website" />
     <meta
@@ -109,7 +109,7 @@
         <i class="fa-solid fa-camera mr-2"></i>警務專用影像轉換器
       </h1>
       <p class="text-[#7f8c8d] text-[0.95em] mb-7 leading-relaxed">
-        全本機離線運算，支援 HEIC/PNG/WebP 轉 JPG。<br />自動優化畫質與尺寸，專為
+        全本機離線運算，支援 HEIC/PNG/WebP 轉 JPG。<br />保留原始像素，專為
         Excel 自動化系統設計。
       </p>
 
@@ -121,20 +121,9 @@
           <div
             class="step-icon text-[1.2rem] text-accent bg-white w-9 h-9 flex items-center justify-center rounded-full shadow-sm"
           >
-            <i class="fa-solid fa-print"></i>
-          </div>
-          <span class="text-[0.85rem] font-semibold">1. 選擇畫質</span>
-        </div>
-        <div class="step-arrow hidden md:block text-slate-300 mx-4 text-sm">
-          <i class="fa-solid fa-chevron-right"></i>
-        </div>
-        <div class="step flex flex-col items-center gap-2 text-[#333]">
-          <div
-            class="step-icon text-[1.2rem] text-accent bg-white w-9 h-9 flex items-center justify-center rounded-full shadow-sm"
-          >
             <i class="fa-solid fa-images"></i>
           </div>
-          <span class="text-[0.85rem] font-semibold">2. 上傳圖片</span>
+          <span class="text-[0.85rem] font-semibold">1. 上傳圖片</span>
         </div>
         <div class="step-arrow hidden md:block text-slate-300 mx-4 text-sm">
           <i class="fa-solid fa-chevron-right"></i>
@@ -145,7 +134,7 @@
           >
             <i class="fa-solid fa-rocket"></i>
           </div>
-          <span class="text-[0.85rem] font-semibold">3. 開始轉換</span>
+          <span class="text-[0.85rem] font-semibold">2. 開始轉換</span>
         </div>
 
         <!-- 齒輪按鈕 (進階設定) -->
@@ -158,74 +147,10 @@
         </button>
       </section>
 
-      <!-- 設定面板 (DPI + 銳化) -->
-      <div
-        class="settings-panel w-full bg-[#f8f9fa] border border-[#e9ecef] rounded-xl p-[15px_20px] mb-5 flex flex-col lg:flex-row items-center justify-between gap-4 lg:gap-6"
-      >
-        <!-- DPI 選擇組 -->
-        <div
-          class="flex flex-col md:flex-row items-center gap-3 w-full lg:w-auto"
-        >
-          <label
-            class="font-bold text-primary flex items-center gap-2 whitespace-nowrap"
-            ><i class="fa-solid fa-print"></i> 輸出畫質(DPI)</label
-          >
-          <div
-            id="dpiButtonGroup"
-            class="flex flex-wrap md:flex-nowrap gap-1 bg-white p-1 rounded-lg border border-[#ced4da] w-full md:w-auto"
-          >
-            <button
-              type="button"
-              data-value="96"
-              class="dpi-btn flex-1 py-1.5 px-4 rounded-md transition-all duration-200 border border-transparent hover:bg-slate-50 text-slate-600 flex flex-col items-center min-w-fit"
-            >
-              <span class="text-base font-bold">96</span>
-              <span class="text-xs opacity-80 whitespace-nowrap">螢幕用</span>
-            </button>
-            <button
-              type="button"
-              data-value="150"
-              class="dpi-btn flex-1 py-1.5 px-4 rounded-md transition-all duration-200 border border-transparent hover:bg-slate-50 text-slate-600 flex flex-col items-center min-w-fit"
-            >
-              <span class="text-base font-bold">150</span>
-              <span class="text-xs opacity-80 whitespace-nowrap">一般文件</span>
-            </button>
-            <button
-              type="button"
-              data-value="220"
-              class="dpi-btn flex-1 py-1.5 px-4 rounded-md transition-all duration-200 border border-transparent hover:bg-slate-50 text-slate-600 flex flex-col items-center min-w-fit"
-            >
-              <span class="text-base font-bold">220</span>
-              <span class="text-xs opacity-90 whitespace-nowrap">推薦列印</span>
-            </button>
-            <button
-              type="button"
-              data-value="300"
-              class="dpi-btn flex-1 py-1.5 px-4 rounded-md transition-all duration-200 border border-transparent hover:bg-slate-50 text-slate-600 flex flex-col items-center min-w-fit"
-            >
-              <span class="text-base font-bold">300</span>
-              <span class="text-xs opacity-80 whitespace-nowrap">極致清晰</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- 自動銳化 -->
-        <div class="flex items-center gap-4 lg:gap-5">
-          <label
-            class="flex items-center gap-2 cursor-pointer group whitespace-nowrap"
-          >
-            <input
-              type="checkbox"
-              id="chkSharpen"
-              class="w-4 h-4 rounded border-gray-300 text-accent focus:ring-accent"
-              checked
-            />
-            <span
-              class="text-sm font-medium text-slate-600 group-hover:text-primary transition-colors"
-              >自動銳化</span
-            >
-          </label>
-        </div>
+      <!-- 設定面板 (隱藏，保留結構以避免 JS 報錯) -->
+      <div class="settings-panel hidden">
+        <div id="dpiButtonGroup"></div>
+        <input type="checkbox" id="chkSharpen" />
       </div>
 
       <!-- 背景遮罩 (Overlay) -->
@@ -296,32 +221,7 @@
               </p>
             </div>
 
-            <!-- 銳化強度 -->
-            <div class="space-y-3">
-              <div class="flex justify-between items-baseline">
-                <label class="text-[13px] font-bold text-slate-700"
-                  >銳化混合強度</label
-                >
-                <span
-                  id="cfg-sharpen-val"
-                  class="text-[13px] font-mono font-bold text-accent"
-                  >0.3</span
-                >
-              </div>
-              <input
-                type="range"
-                id="cfg-sharpen"
-                min="0"
-                max="0.8"
-                step="0.05"
-                aria-label="銳化混合強度"
-                class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent"
-              />
-              <p class="text-[11px] text-slate-400 leading-normal">
-                增加：文字邊緣更清晰銳利。<br />
-                減少：畫面較柔和自然。
-              </p>
-            </div>
+
 
             <!-- 長截圖判定比例 -->
             <div class="space-y-3">
@@ -377,28 +277,7 @@
               </p>
             </div>
 
-            <!-- A4 模擬寬度 -->
-            <div class="space-y-3">
-              <div class="flex justify-between items-baseline">
-                <label class="text-[13px] font-bold text-slate-700"
-                  >模擬 A4 列印寬度 (cm)</label
-                >
-                <span
-                  id="cfg-a4width-val"
-                  class="text-[13px] font-mono font-bold text-accent"
-                  >20</span
-                >
-              </div>
-              <input
-                type="range"
-                id="cfg-a4width"
-                min="10"
-                max="30"
-                step="1"
-                aria-label="模擬A4列印寬度"
-                class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent"
-              />
-            </div>
+
 
             <div class="pt-4 border-t border-slate-100">
               <h4 class="text-[12px] font-bold text-slate-400 mb-4 uppercase tracking-wider">影片截圖設定</h4>
@@ -584,11 +463,8 @@
 
         // 預設配置參數 (所有可變變數集中於此，嚴禁魔術數字)
         DEFAULT_CONFIG: {
-          dpi: 220, // 預設 DPI (220)
           overlapSource: 150, // 分割重疊像素 (150px)
           ratioThreshold: 2.5, // 長截圖判定比例 (2.5)
-          a4WidthCm: 20, // 目標 A4 寬度 (20cm)
-          sharpenMix: 0.3, // 銳化混合強度 (0.3)
           outputQuality: 0.95, // JPEG 輸出品質 (0.95)
           videoDelta: 5, // 影片擷取靈敏度 (5%)
           videoStep: 0.3, // 影片掃描間隔 (0.3s)
@@ -620,13 +496,8 @@
           ".webm",
         ],
 
-        // DPI 選項及其用途描述
-        DPI_OPTIONS: [
-          { value: 96, label: "螢幕用" },
-          { value: 150, label: "一般文件" },
-          { value: 220, label: "推薦列印" },
-          { value: 300, label: "極致清晰" },
-        ],
+        // DPI 選項及其用途描述 (已移除)
+        DPI_OPTIONS: [],
       };
 
       // 凍結物件以防止意外修改
@@ -641,7 +512,7 @@
         // --- DOM 元素快取 ---
         let fileInput, fileListContainer, dropArea;
         let btnConvert, btnReconvert, btnClear;
-        let progressArea, progressBar, statusText, dpiBtns, chkSharpen;
+        let progressArea, progressBar, statusText;
 
         // --- 狀態變數 ---
         let selectedFiles = [];
@@ -686,8 +557,6 @@
           progressArea = document.getElementById("progressArea");
           progressBar = document.getElementById("progressBar");
           statusText = document.getElementById("statusText");
-          dpiBtns = document.querySelectorAll(".dpi-btn");
-          chkSharpen = document.getElementById("chkSharpen");
 
           bindEvents();
           syncConfigToUI(); // 同步配置至介面
@@ -765,52 +634,6 @@
 
           btnClear.addEventListener("click", resetAll);
 
-          // DPI 選項切換
-          dpiBtns.forEach((btn) => {
-            btn.addEventListener("click", () => {
-              const dpiValue = parseInt(btn.dataset.value);
-              config.dpi = dpiValue;
-              saveUserPreferences();
-              updateDpiButtonsUI(dpiValue);
-            });
-          });
-        }
-
-        /**
-         * 更新 DPI 按鈕的視覺狀態
-         * @param {number} activeDpi
-         */
-        function updateDpiButtonsUI(activeDpi) {
-          dpiBtns.forEach((btn) => {
-            const isSelected = parseInt(btn.dataset.value) === activeDpi;
-            if (isSelected) {
-              btn.setAttribute("data-active", "true");
-              btn.classList.add(
-                "bg-accent",
-                "text-white",
-                "shadow-sm",
-                "border-accent",
-              );
-              btn.classList.remove(
-                "border-transparent",
-                "text-slate-600",
-                "hover:bg-slate-50",
-              );
-            } else {
-              btn.removeAttribute("data-active");
-              btn.classList.remove(
-                "bg-accent",
-                "text-white",
-                "shadow-sm",
-                "border-accent",
-              );
-              btn.classList.add(
-                "border-transparent",
-                "text-slate-600",
-                "hover:bg-slate-50",
-              );
-            }
-          });
         }
 
         /**
@@ -900,12 +723,6 @@
         async function startConversionProcess() {
           if (selectedFiles.length === 0) return;
 
-          const dpi = config.dpi;
-          const isSharpenEnabled = chkSharpen.checked;
-
-          // 計算目標寬度 (像素)： (a4WidthCm / 2.54) * DPI
-          const targetWidthPx = Math.round((config.a4WidthCm / 2.54) * dpi);
-
           // UI 鎖定
           btnConvert.removeAttribute("data-active");
           btnReconvert.classList.add("hidden");
@@ -923,9 +740,9 @@
             try {
               let results = [];
               if (file.type.startsWith("video/") || [".mp4", ".mov", ".webm"].some(ext => file.name.toLowerCase().endsWith(ext))) {
-                results = await processVideoFile(file, targetWidthPx, isSharpenEnabled);
+                results = await processVideoFile(file);
               } else {
-                results = await processSingleImage(file, targetWidthPx, isSharpenEnabled);
+                results = await processSingleImage(file);
               }
               processedImages.push(...results);
               successCount++;
@@ -947,11 +764,7 @@
         /**
          * 處理單一圖片轉換與切片
          */
-        async function processSingleImage(
-          file,
-          targetWidthPx,
-          isSharpenEnabled,
-        ) {
+        async function processSingleImage(file) {
           let currentBlob = file;
 
           // HEIC 格式前置轉換
@@ -979,7 +792,6 @@
               const originalH = img.height;
               const ratio = originalH / originalW;
 
-              const scale = targetWidthPx / originalW; // 縮放係數
               const isLongMobile = ratio > config.ratioThreshold; // 是否為長截圖
               const baseName = file.name.replace(/\.[^/.]+$/, "");
 
@@ -995,23 +807,21 @@
                   if (currentY + actualSliceH > originalH)
                     actualSliceH = originalH - currentY;
 
-                  const targetSliceH = Math.floor(actualSliceH * scale);
                   const blob = await generateProcessedBlob(
                     img,
                     0,
                     currentY,
                     originalW,
                     actualSliceH,
-                    targetWidthPx,
-                    targetSliceH,
-                    isSharpenEnabled,
+                    originalW,
+                    actualSliceH,
                   );
 
                   results.push({
                     name: `${baseName}_${String(sliceIndex).padStart(2, "0")}.jpg`,
                     blob: blob,
-                    width: targetWidthPx,
-                    height: targetSliceH,
+                    width: originalW,
+                    height: actualSliceH,
                   });
 
                   if (currentY + actualSliceH >= originalH) break;
@@ -1020,22 +830,20 @@
                 }
               } else {
                 // --- 一般模式 ---
-                const targetHeight = Math.floor(originalH * scale);
                 const blob = await generateProcessedBlob(
                   img,
                   0,
                   0,
                   originalW,
                   originalH,
-                  targetWidthPx,
-                  targetHeight,
-                  isSharpenEnabled,
+                  originalW,
+                  originalH,
                 );
                 results.push({
                   name: `${baseName}.jpg`,
                   blob: blob,
-                  width: targetWidthPx,
-                  height: targetHeight,
+                  width: originalW,
+                  height: originalH,
                 });
               }
               resolve(results);
@@ -1048,7 +856,7 @@
         /**
          * 處理影片檔案：自動擷取對話影格
          */
-        async function processVideoFile(file, targetWidthPx, isSharpenEnabled) {
+        async function processVideoFile(file) {
           return new Promise((resolve, reject) => {
             const video = document.createElement("video");
             const canvas = document.createElement("canvas");
@@ -1069,8 +877,8 @@
               canvas.width = video.videoWidth;
               canvas.height = video.videoHeight;
               
-              const scale = targetWidthPx / video.videoWidth;
-              const targetHeight = Math.floor(video.videoHeight * scale);
+              const targetWidthPx = video.videoWidth;
+              const targetHeight = video.videoHeight;
 
               // --- 位移偵測變數 ---
               let lastStrip = null;
@@ -1089,7 +897,7 @@
                 video.currentTime = 0;
                 await new Promise(r => (video.onseeked = r));
                 ctx.drawImage(video, 0, 0);
-                const firstBlob = await captureFrame(canvas, targetWidthPx, targetHeight, isSharpenEnabled);
+                const firstBlob = await captureFrame(canvas, targetWidthPx, targetHeight);
                 results.push(createFrameResult(baseName, frameIndex++, firstBlob, targetWidthPx, targetHeight));
                 lastStrip = getVerticalStrip(ctx, canvas.width, canvas.height);
                 lastImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -1146,7 +954,7 @@
                     const isDuplicate = !isFrameChanged(lastCapturedImageData, currentImageData, 5);
                     
                     if (!isDuplicate || seekTime >= duration) {
-                      const blob = await captureFrame(canvas, targetWidthPx, targetHeight, isSharpenEnabled);
+                      const blob = await captureFrame(canvas, targetWidthPx, targetHeight);
                       results.push(createFrameResult(baseName, frameIndex++, blob, targetWidthPx, targetHeight));
                       lastCapturedImageData = currentImageData; // 更新最末存檔紀錄
                       accumulatorDY = 0;
@@ -1196,8 +1004,8 @@
         /**
          * 輔助函式：執行單一影格擷取
          */
-        async function captureFrame(canvas, dw, dh, isSharpen) {
-          return await generateProcessedBlobFromCanvas(canvas, dw, dh, isSharpen);
+        async function captureFrame(canvas, dw, dh) {
+          return await generateProcessedBlobFromCanvas(canvas, dw, dh);
         }
 
         /**
@@ -1284,7 +1092,7 @@
         /**
          * 直接從 Canvas 生成處理後的 Blob
          */
-        async function generateProcessedBlobFromCanvas(sourceCanvas, dw, dh, doSharpen) {
+        async function generateProcessedBlobFromCanvas(sourceCanvas, dw, dh) {
           const outCanvas = document.createElement("canvas");
           outCanvas.width = dw;
           outCanvas.height = dh;
@@ -1294,19 +1102,15 @@
           outCtx.imageSmoothingQuality = "high";
           outCtx.drawImage(sourceCanvas, 0, 0, sourceCanvas.width, sourceCanvas.height, 0, 0, dw, dh);
 
-          if (doSharpen) {
-            applySharpenFilter(outCtx, dw, dh, config.sharpenMix);
-          }
-
           return new Promise(resolve => {
             outCanvas.toBlob(resolve, "image/jpeg", config.outputQuality);
           });
         }
 
         /**
-         * 生成經過處理 (縮放、銳化) 的 Blob
+         * 生成經過處理的 Blob
          */
-        function generateProcessedBlob(img, sx, sy, sw, sh, dw, dh, doSharpen) {
+        function generateProcessedBlob(img, sx, sy, sw, sh, dw, dh) {
           return new Promise((resolve) => {
             const canvas = document.createElement("canvas");
             canvas.width = dw;
@@ -1317,53 +1121,11 @@
             ctx.imageSmoothingQuality = "high";
             ctx.drawImage(img, sx, sy, sw, sh, 0, 0, dw, dh);
 
-            if (doSharpen) {
-              applySharpenFilter(ctx, dw, dh, config.sharpenMix);
-            }
-
             canvas.toBlob(resolve, "image/jpeg", config.outputQuality);
           });
         }
 
-        /**
-         * 銳化濾鏡核心 (3x3 卷積)
-         * @param {CanvasRenderingContext2D} ctx
-         * @param {number} w
-         * @param {number} h
-         * @param {number} mix
-         */
-        function applySharpenFilter(ctx, w, h, mix) {
-          const imageData = ctx.getImageData(0, 0, w, h);
-          const data = imageData.data;
-          const inputData = new Uint8ClampedArray(data);
 
-          const kernel = [0, -1, 0, -1, 5, -1, 0, -1, 0];
-          const clamp = (val) => Math.min(255, Math.max(0, val));
-
-          for (let y = 1; y < h - 1; y++) {
-            for (let x = 1; x < w - 1; x++) {
-              const idx = (y * w + x) * 4;
-              let r = 0,
-                g = 0,
-                b = 0;
-
-              for (let ky = -1; ky <= 1; ky++) {
-                for (let kx = -1; kx <= 1; kx++) {
-                  const pixelIdx = ((y + ky) * w + (x + kx)) * 4;
-                  const weight = kernel[(ky + 1) * 3 + (kx + 1)];
-                  r += inputData[pixelIdx] * weight;
-                  g += inputData[pixelIdx + 1] * weight;
-                  b += inputData[pixelIdx + 2] * weight;
-                }
-              }
-
-              data[idx] = clamp(inputData[idx] * (1 - mix) + r * mix);
-              data[idx + 1] = clamp(inputData[idx + 1] * (1 - mix) + g * mix);
-              data[idx + 2] = clamp(inputData[idx + 2] * (1 - mix) + b * mix);
-            }
-          }
-          ctx.putImageData(imageData, 0, 0);
-        }
 
         /**
          * 顯示下載 ZIP 按鈕
@@ -1426,8 +1188,6 @@
           const mapping = {
             "cfg-overlap": "overlapSource",
             "cfg-threshold": "ratioThreshold",
-            "cfg-a4width": "a4WidthCm",
-            "cfg-sharpen": "sharpenMix",
             "cfg-quality": "outputQuality",
             "cfg-video-delta": "videoDelta",
             "cfg-video-step": "videoStep",
@@ -1453,7 +1213,6 @@
             }
           }
 
-          updateDpiButtonsUI(config.dpi);
           initSidePanelLogic();
         }
 
