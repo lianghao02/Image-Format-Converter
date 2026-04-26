@@ -9,15 +9,15 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta
       name="description"
-      content="全本機離線運算，支援 HEIC/PNG/WebP 轉 JPG。保留原始像素，專為 Excel 自動化系統設計。"
+      content="本機端離線影像轉檔工具，支援 HEIC/PNG/WebP 轉 JPG。確保隱私安全，對接行政報表自動化作業。"
     />
     <meta name="author" content="LiangHao" />
-    <title>警務影像轉換器 | LiangHao Dev</title>
+    <title>警用影像格式轉換工具 | 行政效能優化</title>
     <link rel="icon" type="image/png" href="favicon.png" />
-    <meta property="og:title" content="警務影像轉換器 | LiangHao Dev" />
+    <meta property="og:title" content="警用影像格式轉換工具 | LiangHao Dev" />
     <meta
       property="og:description"
-      content="全本機離線運算，支援 HEIC/PNG/WebP 轉 JPG。保留原始像素。"
+      content="確保隱私安全的本機端影像轉檔，支援 HEIC/PNG/WebP 轉 JPG 並保留原始畫質。"
     />
     <meta property="og:type" content="website" />
     <meta
@@ -106,11 +106,10 @@
       class="container w-full max-w-[700px] bg-card-bg p-10 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.1)] text-center transition-transform duration-200"
     >
       <h1 class="text-3xl font-bold text-primary mb-2.5">
-        <i class="fa-solid fa-camera mr-2"></i>警務專用影像轉換器
+        <i class="fa-solid fa-camera mr-2"></i>警用影像格式轉換工具
       </h1>
       <p class="text-[#7f8c8d] text-[0.95em] mb-7 leading-relaxed">
-        全本機離線運算，支援 HEIC/PNG/WebP 轉 JPG。<br />保留原始像素，專為
-        Excel 自動化系統設計。
+        本機端離線作業，確保影像隱私不外流。<br />支援 HEIC/PNG/WebP 轉 JPG，保留原始解析度，對接行政報表自動化流程。
       </p>
 
       <!-- 使用步驟說明 -->
@@ -123,7 +122,7 @@
           >
             <i class="fa-solid fa-images"></i>
           </div>
-          <span class="text-[0.85rem] font-semibold">1. 上傳圖片</span>
+          <span class="text-[0.85rem] font-semibold">1. 選取或匯入</span>
         </div>
         <div class="step-arrow hidden md:block text-slate-300 mx-4 text-sm">
           <i class="fa-solid fa-chevron-right"></i>
@@ -134,14 +133,14 @@
           >
             <i class="fa-solid fa-rocket"></i>
           </div>
-          <span class="text-[0.85rem] font-semibold">2. 開始轉換</span>
+          <span class="text-[0.85rem] font-semibold">2. 執行轉檔</span>
         </div>
 
         <!-- 齒輪按鈕 (進階設定) -->
         <button
           id="btnToggleConfig"
           class="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-primary transition-colors hover:rotate-45 duration-300"
-          title="進階設定"
+          title="參數設定"
         >
           <i class="fa-solid fa-gear text-lg"></i>
         </button>
@@ -169,7 +168,7 @@
           class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100"
         >
           <h3 class="text-base font-bold text-primary flex items-center gap-2">
-            <i class="fa-solid fa-sliders text-accent"></i> 進階參數微調
+            <i class="fa-solid fa-sliders text-accent"></i> 進階轉檔參數設定
           </h3>
           <button
             id="btnCloseConfig"
@@ -188,7 +187,7 @@
               id="btnResetConfig"
               class="text-[12px] text-accent hover:underline flex items-center gap-1"
             >
-              <i class="fa-solid fa-rotate-left"></i> 恢復預設值
+              <i class="fa-solid fa-rotate-left"></i> 重設為預設參數
             </button>
           </div>
 
@@ -198,7 +197,7 @@
             <div class="space-y-3">
               <div class="flex justify-between items-baseline">
                 <label class="text-[13px] font-bold text-slate-700"
-                  >分割重疊區域</label
+                  >影像分割重疊像素</label
                 >
                 <span
                   id="cfg-overlap-val"
@@ -212,12 +211,12 @@
                 min="0"
                 max="400"
                 step="10"
-                aria-label="分割重疊區域"
+                aria-label="影像分割重疊像素"
                 class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent"
               />
               <p class="text-[11px] text-slate-400 leading-normal">
-                增加：分割處重疊變多，文字更不易被切斷。<br />
-                減少：縮短總圖片長度。
+                增加：避免文字或關鍵內容在分割處被切斷。<br />
+                減少：縮短輸出圖片的總長度。
               </p>
             </div>
 
@@ -227,7 +226,7 @@
             <div class="space-y-3">
               <div class="flex justify-between items-baseline">
                 <label class="text-[13px] font-bold text-slate-700"
-                  >長截圖判定敏感度</label
+                  >長截圖偵測靈敏度</label
                 >
                 <span
                   id="cfg-threshold-val"
@@ -241,11 +240,11 @@
                 min="1.5"
                 max="5"
                 step="0.1"
-                aria-label="長截圖判定敏感度"
+                aria-label="長截圖偵測靈敏度"
                 class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent"
               />
               <p class="text-[11px] text-slate-400 leading-normal">
-                增加：更嚴格，僅極長的圖才執行分割。<br />
+                增加：判定標準較嚴格，僅極長的圖才執行分割。<br />
                 減少：較容易觸發自動分割邏輯。
               </p>
             </div>
@@ -254,7 +253,7 @@
             <div class="space-y-3">
               <div class="flex justify-between items-baseline">
                 <label class="text-[13px] font-bold text-slate-700"
-                  >JPEG 壓縮品質</label
+                  >影像輸出品質 (JPEG)</label
                 >
                 <span
                   id="cfg-quality-val"
@@ -268,25 +267,25 @@
                 min="0.5"
                 max="1"
                 step="0.01"
-                aria-label="JPEG 壓縮品質"
+                aria-label="影像輸出品質"
                 class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent"
               />
               <p class="text-[11px] text-slate-400 leading-normal">
-                增加：畫質清晰，但檔案體積較大。<br />
-                減少：節省空間，但可能出現雜訊。
+                調高：畫質細膩清晰，但檔案體積較大。<br />
+                調低：節省磁碟空間，但可能出現雜訊。
               </p>
             </div>
 
 
 
             <div class="pt-4 border-t border-slate-100">
-              <h4 class="text-[12px] font-bold text-slate-400 mb-4 uppercase tracking-wider">影片截圖設定</h4>
+              <h4 class="text-[12px] font-bold text-slate-400 mb-4 uppercase tracking-wider">影片轉截圖設定</h4>
               
               <!-- 影片擷取靈敏度 -->
               <div class="space-y-3 mb-6">
                 <div class="flex justify-between items-baseline">
                   <label class="text-[13px] font-bold text-slate-700"
-                    >擷取靈敏度 (變動率)</label
+                    >畫面偵測靈敏度 (變動率)</label
                   >
                   <span
                     id="cfg-video-delta-val"
@@ -300,12 +299,12 @@
                   min="1"
                   max="20"
                   step="1"
-                  aria-label="影片擷取靈敏度"
+                  aria-label="畫面偵測靈敏度"
                   class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent"
                 />
                 <p class="text-[11px] text-slate-400 leading-normal">
-                  較小：極微小變動即擷取 (多圖)<br />
-                  較大：僅在大範圍變動時擷取 (精簡)
+                  調低：微小變動即擷取 (產生圖片較多)<br />
+                  調高：僅在大範圍變動時擷取 (結果較精簡)
                 </p>
               </div>
 
@@ -313,7 +312,7 @@
               <div class="space-y-3">
                 <div class="flex justify-between items-baseline">
                   <label class="text-[13px] font-bold text-slate-700"
-                    >掃描間隔 (秒)</label
+                    >影片取樣頻率 (秒)</label
                   >
                   <span
                     id="cfg-video-step-val"
@@ -327,7 +326,7 @@
                   min="0.1"
                   max="2.0"
                   step="0.1"
-                  aria-label="影片掃描間隔"
+                  aria-label="影片取樣頻率"
                   class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent"
                 />
               </div>
@@ -336,7 +335,7 @@
               <div class="space-y-3 pt-6 border-t border-slate-50">
                 <div class="flex justify-between items-baseline">
                   <label class="text-[13px] font-bold text-slate-700"
-                    >分頁重疊比例 (%)</label
+                    >畫面重疊比例 (%)</label
                   >
                   <span
                     id="cfg-video-overlap-val"
@@ -350,12 +349,12 @@
                   min="0"
                   max="50"
                   step="5"
-                  aria-label="分頁重疊比例"
+                  aria-label="畫面重疊比例"
                   class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent"
                 />
                 <p class="text-[11px] text-slate-400 leading-normal">
-                  增加：截圖間重複內容增多，易於對筆。<br />
-                  減少：減少冗餘頁面。
+                  調高：相鄰截圖間重複內容增多，方便比對。<br />
+                  調低：減少產生冗餘重複的頁面。
                 </p>
               </div>
             </div>
@@ -367,7 +366,7 @@
           <p
             class="text-[11px] text-slate-400 italic text-center leading-normal"
           >
-            變更將自動儲存於瀏覽器，<br />下次開啟時直接套用。
+            設定值將自動儲存於瀏覽器，<br />下次開啟時將延續目前參數。
           </p>
         </div>
       </div>
@@ -383,10 +382,10 @@
           <i class="fa-solid fa-folder-open"></i>
         </div>
         <div class="upload-text text-lg text-[#4a5568] font-medium">
-          點擊選取 或 拖曳照片至此
+          點擊此處 或 將檔案拖放至此
         </div>
         <div class="upload-subtext text-[13px] text-[#a0aec0] mt-1.5">
-          支援 JPG, HEIC, PNG, MP4, MOV (可多選)
+          支援 JPG, HEIC, PNG, MP4, MOV 等格式
         </div>
       </div>
       <input
@@ -410,19 +409,19 @@
           id="btnConvert"
           class="btn btn-primary bg-success text-white hover:bg-[#219150] border-none py-3 px-5 rounded-xl text-[15px] font-semibold cursor-pointer transition-all duration-200 flex-1 flex items-center justify-center gap-2 opacity-60 pointer-events-none data-[active=true]:opacity-100 data-[active=true]:pointer-events-auto data-[active=true]:shadow-md"
         >
-          <span><i class="fa-solid fa-rocket"></i> 開始轉換</span>
+          <span><i class="fa-solid fa-rocket"></i> 開始轉檔</span>
         </button>
         <button
           id="btnReconvert"
           class="btn btn-warning bg-warning text-white hover:bg-[#d35400] border-none py-3 px-5 rounded-xl text-[15px] font-semibold cursor-pointer transition-all duration-200 flex-1 flex items-center justify-center gap-2 hidden"
         >
-          <span><i class="fa-solid fa-rotate"></i> 重新轉換</span>
+          <span><i class="fa-solid fa-rotate"></i> 重新執行轉檔</span>
         </button>
         <button
           id="btnClear"
           class="btn btn-danger bg-danger text-white hover:bg-[#a93226] border-none py-3 px-5 rounded-xl text-[15px] font-semibold cursor-pointer transition-all duration-200 flex-[0.5] flex items-center justify-center gap-2 opacity-60 pointer-events-none data-[active=true]:opacity-100 data-[active=true]:pointer-events-auto data-[active=true]:shadow-md"
         >
-          <span><i class="fa-solid fa-trash-can"></i> 清除重置</span>
+          <span><i class="fa-solid fa-trash-can"></i> 清空名單</span>
         </button>
       </div>
 
@@ -440,22 +439,21 @@
           class="status-text mt-2.5 text-sm text-[#4a5568] font-semibold"
           id="statusText"
         >
-          準備就緒
+          待命中
         </p>
       </div>
 
       <footer
         class="mt-10 text-center text-[#7f8c8d] text-sm pt-5 border-t border-[#ecf0f1]"
       >
-        <p>&copy; 2025 警務影像轉換器 v3.2. 版權所有.</p>
+        <p>&copy; 2025 行政影像自動化工具 v3.2.</p>
       </footer>
     </div>
 
     <script>
       /**
-       * 警務影像轉換器 - 全域配置管理
+       * 行政影像自動化工具 - 全域配置管理
        * 包含預設參數、儲存金鑰與檔案類型定義
-       * pip install 不適用 (純 Web 前端)
        */
       const CONFIG_MANAGER = {
         // 本機儲存金鑰
@@ -505,8 +503,8 @@
       Object.freeze(CONFIG_MANAGER.DEFAULT_CONFIG);
 
       /**
-       * 警務影像轉換器 - 核心邏輯
-       * 轉檔預設執行：縮放 (DPI) -> 自動銳化 -> 切片 (長截圖判定)
+       * 行政影像自動化工具 - 核心邏輯
+       * 轉檔程序：格式轉換 -> 長截圖偵測 -> 自動分段切片
        */
       const app = (function () {
         // --- DOM 元素快取 ---
@@ -656,10 +654,10 @@
           btnReconvert.classList.add("hidden");
           btnConvert.classList.remove("hidden");
           btnConvert.innerHTML =
-            '<span><i class="fa-solid fa-rocket"></i> 開始轉換</span>';
+            '<span><i class="fa-solid fa-rocket"></i> 開始轉檔</span>';
 
           // 移除動態生成的下載按鈕
-          const dynamicButtons = ["btnExportExcel", "btnDownloadZip"];
+          const dynamicButtons = ["btnExportExcel", "btnDownloadZip", "btnDownloadIndividual"];
           dynamicButtons.forEach((id) => {
             const el = document.getElementById(id);
             if (el) el.remove();
@@ -711,7 +709,7 @@
           progressArea.classList.add("hidden");
 
           // 清除舊有的下載按鈕
-          ["btnExportExcel", "btnDownloadZip"].forEach((id) => {
+          ["btnExportExcel", "btnDownloadZip", "btnDownloadIndividual"].forEach((id) => {
             const el = document.getElementById(id);
             if (el) el.remove();
           });
@@ -734,7 +732,7 @@
 
           for (let i = 0; i < selectedFiles.length; i++) {
             const file = selectedFiles[i];
-            statusText.innerText = `⏳ 正在處理 (${i + 1}/${selectedFiles.length})：${file.name}`;
+            statusText.innerText = `⏳ 檔案處理中 (${i + 1}/${selectedFiles.length})：${file.name}`;
             progressBar.style.width = `${(i / selectedFiles.length) * 100}%`;
 
             try {
@@ -751,7 +749,7 @@
             }
           }
 
-          statusText.innerText = `✅ 成功處理 ${successCount} 個檔案，生成 ${processedImages.length} 張切片。`;
+          statusText.innerText = `✅ 轉檔作業完成！共處理 ${successCount} 個檔案，產生 ${processedImages.length} 張圖檔。`;
           progressBar.style.width = "100%";
 
           btnConvert.classList.add("hidden");
@@ -972,7 +970,7 @@
                   currentTime += step;
                   if (currentTime > duration && currentTime - step < duration) currentTime = duration;
                   
-                  statusText.innerText = `⏳ 像素位移分析 (${Math.round((seekTime/duration)*100)}%)：${file.name}`;
+                  statusText.innerText = `⏳ 位移偵測分析中 (${Math.round((seekTime/duration)*100)}%)：${file.name}`;
                 }
                 URL.revokeObjectURL(url);
                 resolve(results);
@@ -1132,16 +1130,64 @@
          */
         function showResultButtons() {
           const btnGroup = document.querySelector(".btn-group");
-          if (document.getElementById("btnDownloadZip")) return;
+          if (document.getElementById("btnDownloadIndividual")) return;
 
-          const btn = document.createElement("button");
-          btn.id = "btnDownloadZip";
-          btn.className =
+          // 按鈕 1: 個別下載 (不壓縮)
+          const btnIndividual = document.createElement("button");
+          btnIndividual.id = "btnDownloadIndividual";
+          btnIndividual.className =
             "btn btn-success bg-success text-white hover:bg-[#219150] border-none py-3 px-5 rounded-xl text-[15px] font-semibold cursor-pointer transition-all duration-200 flex-1 flex items-center justify-center gap-2";
-          btn.innerHTML =
-            '<span><i class="fa-solid fa-file-zipper"></i> 下載圖片 (ZIP)</span>';
-          btn.onclick = executeZipDownload;
-          btnGroup.appendChild(btn);
+          btnIndividual.innerHTML =
+            '<span><i class="fa-solid fa-images"></i> 下載全部圖片 (不壓縮)</span>';
+          btnIndividual.onclick = executeIndividualDownload;
+          btnGroup.appendChild(btnIndividual);
+
+          // 按鈕 2: ZIP 下載
+          const btnZip = document.createElement("button");
+          btnZip.id = "btnDownloadZip";
+          btnZip.className =
+            "btn btn-primary bg-primary text-white hover:bg-[#1a252f] border-none py-3 px-5 rounded-xl text-[15px] font-semibold cursor-pointer transition-all duration-200 flex-[0.7] flex items-center justify-center gap-2 opacity-80 hover:opacity-100";
+          btnZip.innerHTML =
+            '<span><i class="fa-solid fa-file-zipper"></i> 下載 ZIP</span>';
+          btnZip.onclick = executeZipDownload;
+          btnGroup.appendChild(btnZip);
+        }
+
+        /**
+         * 執行個別檔案下載 (不壓縮)
+         */
+        async function executeIndividualDownload() {
+          if (processedImages.length === 0) return;
+
+          const total = processedImages.length;
+          if (total > 10) {
+            const proceed = confirm(`即將下載 ${total} 張圖片，您的瀏覽器可能會彈出多個下載視窗或請求權限。確定要繼續嗎？`);
+            if (!proceed) return;
+          }
+
+          statusText.innerText = "⏳ 正在啟動批次下載...";
+          
+          for (let i = 0; i < processedImages.length; i++) {
+            const img = processedImages[i];
+            if (!img.blob) continue;
+
+            statusText.innerText = `⏳ 正在存檔 (${i + 1}/${total})：${img.name}`;
+            
+            const url = URL.createObjectURL(img.blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = img.name;
+            document.body.appendChild(a);
+            a.click();
+            
+            // 稍作延遲，避免瀏覽器下載佇列阻塞或觸發安全機制
+            await new Promise(resolve => setTimeout(resolve, 200));
+            
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          }
+
+          statusText.innerText = `✅ 已啟動 ${total} 個檔案下載。`;
         }
 
         /**
@@ -1150,7 +1196,7 @@
         async function executeZipDownload() {
           if (processedImages.length === 0) return;
 
-          statusText.innerText = "⏳ 正在打包壓縮檔...";
+          statusText.innerText = "⏳ 正在產生壓縮包 (ZIP)...";
           const zip = new JSZip();
 
           processedImages.forEach((img) => {
@@ -1174,7 +1220,7 @@
               a.click();
               URL.revokeObjectURL(url);
             }
-            statusText.innerText = "✅ 下載已啟動";
+            statusText.innerText = "✅ 下載已開始";
           } catch (e) {
             console.error("❌ ZIP 打包失敗:", e);
             statusText.innerText = "❌ 打包失敗，請重試";
