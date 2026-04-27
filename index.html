@@ -56,6 +56,8 @@
               danger: "#c0392b",
               bg: "#f4f6f9",
               "card-bg": "#ffffff",
+              line: "#06c755",
+              tg: "#2481cc",
             },
           },
         },
@@ -66,6 +68,11 @@
     <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+      // 設定 pdf.js 的 worker 路徑
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
 
     <style>
       /* 影像格式轉換器 - 自定義樣式 */
@@ -357,6 +364,37 @@
                   調低：減少產生冗餘重複的頁面。
                 </p>
               </div>
+
+              <div class="pt-6 border-t border-slate-50">
+                <h4 class="text-[12px] font-bold text-slate-400 mb-4 uppercase tracking-wider">PDF 轉檔設定</h4>
+                
+                <!-- PDF 轉檔倍率 -->
+                <div class="space-y-3">
+                  <div class="flex justify-between items-baseline">
+                    <label class="text-[13px] font-bold text-slate-700"
+                      >PDF 轉檔解析度 (倍率)</label
+                    >
+                    <span
+                      id="cfg-pdf-scale-val"
+                      class="text-[13px] font-mono font-bold text-accent"
+                      >2.0</span
+                    >
+                  </div>
+                  <input
+                    type="range"
+                    id="cfg-pdf-scale"
+                    min="1.0"
+                    max="4.0"
+                    step="0.5"
+                    aria-label="PDF 轉檔倍率"
+                    class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent"
+                  />
+                  <p class="text-[11px] text-slate-400 leading-normal">
+                    調高：圖片更清晰（適合列印或 OCR），但檔案較大。<br />
+                    建議：一般閱讀 1.5~2.0 即可。
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -385,16 +423,16 @@
           點擊此處 或 將檔案拖放至此
         </div>
         <div class="upload-subtext text-[13px] text-[#a0aec0] mt-1.5">
-          支援 JPG, HEIC, PNG, MP4, MOV 等格式
+          支援 JPG, HEIC, PNG, MP4, MOV, PDF 等格式
         </div>
       </div>
       <input
         type="file"
         id="fileInput"
         multiple
-        accept="image/*, video/*, .heic"
+        accept="image/*, video/*, .heic, application/pdf"
         class="hidden"
-        aria-label="上傳圖片或影片"
+        aria-label="上傳圖片、影片或 PDF"
       />
 
       <!-- 檔案清單 -->
@@ -404,7 +442,7 @@
       ></div>
 
       <!-- 按鈕組 -->
-      <div class="btn-group flex flex-col md:flex-row gap-4 mt-6">
+      <div class="btn-group flex flex-col md:flex-row gap-6 mt-10">
         <button
           id="btnConvert"
           class="btn btn-primary bg-success text-white hover:bg-[#219150] border-none py-3 px-5 rounded-xl text-[15px] font-semibold cursor-pointer transition-all duration-200 flex-1 flex items-center justify-center gap-2 opacity-60 pointer-events-none data-[active=true]:opacity-100 data-[active=true]:pointer-events-auto data-[active=true]:shadow-md"
@@ -426,7 +464,7 @@
       </div>
 
       <!-- 進度條 -->
-      <div class="progress-container mt-6 hidden" id="progressArea">
+      <div class="progress-container mt-10 hidden" id="progressArea">
         <div
           class="progress-bar-bg w-full bg-[#e2e8f0] h-2.5 rounded-full overflow-hidden"
         >
@@ -446,7 +484,7 @@
       <footer
         class="mt-10 text-center text-[#7f8c8d] text-sm pt-5 border-t border-[#ecf0f1]"
       >
-        <p>&copy; 2025 行政影像自動化工具 v3.2.</p>
+        <p>&copy; 2025 行政影像自動化工具 v4.0</p>
       </footer>
     </div>
 
@@ -467,6 +505,7 @@
           videoDelta: 5, // 影片擷取靈敏度 (5%)
           videoStep: 0.3, // 影片掃描間隔 (0.3s)
           videoOverlap: 20, // 影片分頁重疊比例 (20%)
+          pdfScale: 2.0, // PDF 轉檔解析度倍率 (2.0)
         },
 
         // 支援的檔案類型說明
@@ -479,6 +518,7 @@
           "video/mp4",
           "video/webm",
           "video/quicktime",
+          "application/pdf",
         ],
 
         // 支援的副檔名 (用於過濾)
@@ -492,6 +532,7 @@
           ".mp4",
           ".mov",
           ".webm",
+          ".pdf",
         ],
 
         // DPI 選項及其用途描述 (已移除)
@@ -596,26 +637,37 @@
          * 事件綁定
          */
         function bindEvents() {
-          // 檔案拖放處理
+          // 全域防止瀏覽器預設開啟檔案行為 (避免拖曳至框外時網頁跳轉)
+          window.addEventListener("dragover", (e) => e.preventDefault(), false);
+          window.addEventListener("drop", (e) => e.preventDefault(), false);
+
+          // 檔案拖放區域處理
           ["dragenter", "dragover"].forEach((eventName) => {
             dropArea.addEventListener(eventName, (e) => {
               e.preventDefault();
+              e.stopPropagation();
               dropArea.classList.add("border-success", "bg-[#f0fff4]");
               dropArea.classList.remove("border-[#cbd5e0]", "bg-white");
-            });
+            }, false);
           });
 
-          ["dragleave", "drop"].forEach((eventName) => {
+          ["dragleave"].forEach((eventName) => {
             dropArea.addEventListener(eventName, (e) => {
               e.preventDefault();
+              e.stopPropagation();
               dropArea.classList.remove("border-success", "bg-[#f0fff4]");
               dropArea.classList.add("border-[#cbd5e0]", "bg-white");
-            });
+            }, false);
           });
 
-          dropArea.addEventListener("drop", (e) =>
-            handleFilesUpdate(e.dataTransfer.files),
-          );
+          dropArea.addEventListener("drop", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropArea.classList.remove("border-success", "bg-[#f0fff4]");
+            dropArea.classList.add("border-[#cbd5e0]", "bg-white");
+            handleFilesUpdate(e.dataTransfer.files);
+          }, false);
+
           dropArea.addEventListener("click", () => fileInput.click());
           fileInput.addEventListener("change", (e) =>
             handleFilesUpdate(e.target.files),
@@ -657,7 +709,7 @@
             '<span><i class="fa-solid fa-rocket"></i> 開始轉檔</span>';
 
           // 移除動態生成的下載按鈕
-          const dynamicButtons = ["btnExportExcel", "btnDownloadZip", "btnDownloadIndividual"];
+          const dynamicButtons = ["btnExportExcel", "btnDownloadZip", "btnDownloadIndividual", "downloadSection", "shareSection"];
           dynamicButtons.forEach((id) => {
             const el = document.getElementById(id);
             if (el) el.remove();
@@ -682,7 +734,7 @@
 
           if (validFiles.length === 0) {
             alert(
-              "❌ 不支援的檔案格式！請上傳 JPG, HEIC, PNG, BMP 或 WebP 格式的圖片。",
+              "❌ 不支援的檔案格式！請上傳圖片 (JPG, HEIC, PNG, WebP)、影片 (MP4, MOV) 或 PDF 檔案。",
             );
             return;
           }
@@ -739,6 +791,8 @@
               let results = [];
               if (file.type.startsWith("video/") || [".mp4", ".mov", ".webm"].some(ext => file.name.toLowerCase().endsWith(ext))) {
                 results = await processVideoFile(file);
+              } else if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) {
+                results = await processPdfFile(file);
               } else {
                 results = await processSingleImage(file);
               }
@@ -1106,6 +1160,53 @@
         }
 
         /**
+         * 處理 PDF 檔案：逐頁轉為圖片
+         */
+        async function processPdfFile(file) {
+          return new Promise(async (resolve, reject) => {
+            try {
+              const arrayBuffer = await file.arrayBuffer();
+              const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+              const results = [];
+              const baseName = file.name.replace(/\.[^/.]+$/, "");
+              
+              for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                statusText.innerText = `⏳ PDF 頁面渲染中 (${pageNum}/${pdf.numPages})：${file.name}`;
+                progressBar.style.width = `${(pageNum / pdf.numPages) * 100}%`;
+                
+                const page = await pdf.getPage(pageNum);
+                const viewport = page.getViewport({ scale: config.pdfScale });
+                
+                const canvas = document.createElement("canvas");
+                const context = canvas.getContext("2d");
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                const renderContext = {
+                  canvasContext: context,
+                  viewport: viewport
+                };
+                
+                await page.render(renderContext).promise;
+                
+                // 將渲染好的 Canvas 轉為 Blob (JPEG)
+                const blob = await new Promise(res => canvas.toBlob(res, "image/jpeg", config.outputQuality));
+                
+                results.push({
+                  name: `${baseName}_page_${String(pageNum).padStart(3, "0")}.jpg`,
+                  blob: blob,
+                  width: viewport.width,
+                  height: viewport.height
+                });
+              }
+              resolve(results);
+            } catch (e) {
+              reject(e);
+            }
+          });
+        }
+
+        /**
          * 生成經過處理的 Blob
          */
         function generateProcessedBlob(img, sx, sy, sw, sh, dw, dh) {
@@ -1125,32 +1226,36 @@
 
 
 
+
         /**
-         * 顯示下載 ZIP 按鈕
+         * 顯示下載與分享按鈕組
          */
         function showResultButtons() {
           const btnGroup = document.querySelector(".btn-group");
           if (document.getElementById("btnDownloadIndividual")) return;
 
-          // 按鈕 1: 個別下載 (不壓縮)
+          // 1. 下載區容器
+          const downloadSection = document.createElement("div");
+          downloadSection.id = "downloadSection";
+          downloadSection.className = "flex flex-col md:flex-row gap-4 w-full mt-8";
+          
+          // 按鈕 1: 個別下載
           const btnIndividual = document.createElement("button");
           btnIndividual.id = "btnDownloadIndividual";
-          btnIndividual.className =
-            "btn btn-success bg-success text-white hover:bg-[#219150] border-none py-3 px-5 rounded-xl text-[15px] font-semibold cursor-pointer transition-all duration-200 flex-1 flex items-center justify-center gap-2";
-          btnIndividual.innerHTML =
-            '<span><i class="fa-solid fa-images"></i> 下載全部圖片 (不壓縮)</span>';
+          btnIndividual.className = "btn bg-success text-white hover:bg-[#219150] border-none py-3.5 px-5 rounded-xl text-[15px] font-semibold cursor-pointer transition-all duration-200 flex-1 flex items-center justify-center gap-2 shadow-sm hover:shadow-md";
+          btnIndividual.innerHTML = '<span><i class="fa-solid fa-images"></i> 下載全部圖片</span>';
           btnIndividual.onclick = executeIndividualDownload;
-          btnGroup.appendChild(btnIndividual);
+          downloadSection.appendChild(btnIndividual);
 
           // 按鈕 2: ZIP 下載
           const btnZip = document.createElement("button");
           btnZip.id = "btnDownloadZip";
-          btnZip.className =
-            "btn btn-primary bg-primary text-white hover:bg-[#1a252f] border-none py-3 px-5 rounded-xl text-[15px] font-semibold cursor-pointer transition-all duration-200 flex-[0.7] flex items-center justify-center gap-2 opacity-80 hover:opacity-100";
-          btnZip.innerHTML =
-            '<span><i class="fa-solid fa-file-zipper"></i> 下載 ZIP</span>';
+          btnZip.className = "btn bg-primary text-white hover:bg-[#1a252f] border-none py-3.5 px-5 rounded-xl text-[15px] font-semibold cursor-pointer transition-all duration-200 flex-[0.7] flex items-center justify-center gap-2 opacity-90 hover:opacity-100 shadow-sm hover:shadow-md";
+          btnZip.innerHTML = '<span><i class="fa-solid fa-file-zipper"></i> 下載 ZIP</span>';
           btnZip.onclick = executeZipDownload;
-          btnGroup.appendChild(btnZip);
+          downloadSection.appendChild(btnZip);
+
+          btnGroup.parentNode.insertBefore(downloadSection, btnGroup.nextSibling);
         }
 
         /**
@@ -1238,6 +1343,7 @@
             "cfg-video-delta": "videoDelta",
             "cfg-video-step": "videoStep",
             "cfg-video-overlap": "videoOverlap",
+            "cfg-pdf-scale": "pdfScale",
           };
 
           for (let domId in mapping) {
