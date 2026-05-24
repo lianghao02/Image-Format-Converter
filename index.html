@@ -200,31 +200,61 @@
 
           <!-- 參數調整項 -->
           <div class="space-y-7">
-            <!-- 重疊像素 -->
+            <!-- 切片重疊長度 -->
             <div class="space-y-3">
               <div class="flex justify-between items-baseline">
                 <label class="text-[13px] font-bold text-slate-700"
-                  >影像分割重疊像素</label
+                  >切片重疊長度 (CM)</label
                 >
-                <span
-                  id="cfg-overlap-val"
-                  class="text-[13px] font-mono font-bold text-accent"
-                  >150</span
-                >
+                <div class="flex items-center gap-1">
+                  <span
+                    id="cfg-overlap-cm-val"
+                    class="text-[13px] font-mono font-bold text-accent"
+                    >2.0</span
+                  >
+                  <span class="text-[11px] text-slate-400">cm</span>
+                </div>
               </div>
               <input
                 type="range"
-                id="cfg-overlap"
+                id="cfg-overlap-cm"
                 min="0"
-                max="400"
-                step="10"
-                aria-label="影像分割重疊像素"
+                max="10"
+                step="0.1"
+                aria-label="切片重疊長度"
                 class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent"
               />
               <p class="text-[11px] text-slate-400 leading-normal">
-                增加：避免文字或關鍵內容在分割處被切斷。<br />
-                減少：縮短輸出圖片的總長度。
+                增加：避免文字被切斷。建議設定為 1.5~2.5 cm。
               </p>
+            </div>
+
+            <!-- 切片目標尺寸 -->
+            <div class="space-y-4">
+              <label class="text-[13px] font-bold text-slate-700 block">切片目標尺寸 (CM)</label>
+              
+              <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-2">
+                  <div class="flex justify-between">
+                    <span class="text-[11px] text-slate-500">寬度 (W)</span>
+                    <span id="cfg-width-cm-val" class="text-[12px] font-mono font-bold text-accent">8.5</span>
+                  </div>
+                  <input type="range" id="cfg-width-cm" min="5" max="30" step="0.5" class="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent" />
+                </div>
+                <div class="space-y-2">
+                  <div class="flex justify-between">
+                    <span class="text-[11px] text-slate-500">高度 (H)</span>
+                    <span id="cfg-height-cm-val" class="text-[12px] font-mono font-bold text-accent">19.0</span>
+                  </div>
+                  <input type="range" id="cfg-height-cm" min="5" max="50" step="0.5" class="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent" />
+                </div>
+              </div>
+
+              <!-- 預設比例按鈕 -->
+              <div class="flex gap-2 flex-wrap">
+                <button onclick="window.app.setQuickSize(8.5, 19, 2)" class="text-[10px] px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors">標準 (8.5x19)</button>
+                <button onclick="window.app.setQuickSize(21, 29.7, 3)" class="text-[10px] px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors">A4 (21x29.7)</button>
+              </div>
             </div>
 
 
@@ -499,7 +529,9 @@
 
         // 預設配置參數 (所有可變變數集中於此，嚴禁魔術數字)
         DEFAULT_CONFIG: {
-          overlapSource: 150, // 分割重疊像素 (150px)
+          targetWidthCM: 8.5, // 目標寬度 (8.5cm)
+          targetHeightCM: 19.0, // 目標高度 (19cm)
+          overlapCM: 2.0, // 重疊長度 (2cm)
           ratioThreshold: 2.5, // 長截圖判定比例 (2.5)
           outputQuality: 0.95, // JPEG 輸出品質 (0.95)
           videoDelta: 5, // 影片擷取靈敏度 (5%)
@@ -848,9 +880,14 @@
               const baseName = file.name.replace(/\.[^/.]+$/, "");
 
               if (isLongMobile) {
-                // --- 長截圖切片模式 ---
-                const sliceHeightSource = Math.floor(originalW * 1.6); // 切片高度設為寬度的 1.6 倍
-                const overlap = config.overlapSource;
+                // --- 長截圖切片模式 (公分比例運算) ---
+                const targetW = config.targetWidthCM;
+                const targetH = config.targetHeightCM;
+                const overlapCM = config.overlapCM;
+
+                // 核心公式：H_px = W_px * (H_cm / W_cm)
+                const sliceHeightSource = Math.floor(originalW * (targetH / targetW));
+                const overlap = Math.floor(originalW * (overlapCM / targetW));
                 let currentY = 0;
                 let sliceIndex = 1;
 
@@ -1337,7 +1374,9 @@
          */
         function syncConfigToUI() {
           const mapping = {
-            "cfg-overlap": "overlapSource",
+            "cfg-overlap-cm": "overlapCM",
+            "cfg-width-cm": "targetWidthCM",
+            "cfg-height-cm": "targetHeightCM",
             "cfg-threshold": "ratioThreshold",
             "cfg-quality": "outputQuality",
             "cfg-video-delta": "videoDelta",
@@ -1357,15 +1396,25 @@
 
               el.oninput = (e) => {
                 let val = parseFloat(e.target.value);
-                if (domId === "cfg-overlap") val = parseInt(e.target.value);
                 config[key] = val;
                 saveUserPreferences();
-                if (display) display.innerText = val;
+                if (display) display.innerText = val.toFixed(val % 1 === 0 ? 0 : 1);
               };
             }
           }
 
           initSidePanelLogic();
+        }
+
+        /**
+         * 快速設定尺寸
+         */
+        function setQuickSize(w, h, overlap) {
+          config.targetWidthCM = w;
+          config.targetHeightCM = h;
+          config.overlapCM = overlap;
+          saveUserPreferences();
+          syncConfigToUI();
         }
 
         /**
@@ -1415,8 +1464,10 @@
           }
         }
 
-        return { init };
+        return { init, setQuickSize };
       })();
+
+      window.app = app;
 
       document.addEventListener("DOMContentLoaded", app.init);
     </script>
