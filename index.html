@@ -9,21 +9,11 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta
       name="description"
-      content="本機端離線影像轉檔工具，支援 HEIC/PNG/WebP 轉 JPG。確保隱私安全，對接行政報表自動化作業。"
+      content="警用數位鑑識與離線影像轉檔工具，支援 PDF 掃描件細紋與殘影淨化、司法鑑識手動精確選頁工作室。"
     />
-    <meta name="author" content="LiangHao" />
-    <title>警用影像格式轉換工具 | 行政效能優化</title>
+    <meta name="author" content="LiangHao Dev" />
+    <title>警用影像格式轉換與司法鑑識工具 | PDF 細紋濾除器 v10.0</title>
     <link rel="icon" type="image/png" href="favicon.png" />
-    <meta property="og:title" content="警用影像格式轉換工具 | LiangHao Dev" />
-    <meta
-      property="og:description"
-      content="確保隱私安全的本機端影像轉檔，支援 HEIC/PNG/WebP 轉 JPG 並保留原始畫質。"
-    />
-    <meta property="og:type" content="website" />
-    <meta
-      property="og:url"
-      content="https://lianghao02.github.io/Image-Format-Converter/"
-    />
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -56,8 +46,6 @@
               danger: "#c0392b",
               bg: "#f4f6f9",
               "card-bg": "#ffffff",
-              line: "#06c755",
-              tg: "#2481cc",
             },
           },
         },
@@ -70,666 +58,712 @@
     <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
-      // 設定 pdf.js 的 worker 路徑
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     </script>
 
     <style>
-      /* 影像格式轉換器 - 自定義樣式 */
-
-      /* 檔案列表滾動條樣式 */
-      .file-list::-webkit-scrollbar {
+      .file-list::-webkit-scrollbar, .custom-scroll::-webkit-scrollbar {
         width: 8px;
+        height: 8px;
       }
-
-      .file-list::-webkit-scrollbar-track {
-        background: #f1f1f1;
+      .file-list::-webkit-scrollbar-track, .custom-scroll::-webkit-scrollbar-track {
+        background: #1e293b;
       }
-
-      .file-list::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
+      .file-list::-webkit-scrollbar-thumb, .custom-scroll::-webkit-scrollbar-thumb {
+        background: #475569;
         border-radius: 4px;
       }
-
-      .file-list::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
+      .file-list::-webkit-scrollbar-thumb:hover, .custom-scroll::-webkit-scrollbar-thumb:hover {
+        background: #64748b;
       }
-
-      /* 確保側邊抽屜在過渡期間的平滑度 */
-      #configPanel {
-        will-change: transform;
+      .segmented-btn {
+        transition: all 0.2s ease-in-out;
       }
-
-      #configOverlay {
-        will-change: opacity;
+      .segmented-btn[data-active="true"] {
+        background-color: #3498db;
+        color: #ffffff;
+        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.4);
+      }
+      .checkerboard-bg {
+        background-color: #e2e8f0;
+        background-image: linear-gradient(45deg, #cbd5e1 25%, transparent 25%), linear-gradient(-45deg, #cbd5e1 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #cbd5e1 75%), linear-gradient(-45deg, transparent 75%, #cbd5e1 75%);
+        background-size: 16px 16px;
+        background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
       }
     </style>
   </head>
 
   <body
-    class="bg-bg text-[#333] font-sans flex justify-center pt-10 px-4 mb-10 min-h-screen"
+    class="bg-bg text-[#333] font-sans flex justify-center pt-5 px-4 mb-10 min-h-screen"
   >
     <div
-      class="container w-full max-w-[700px] bg-card-bg p-10 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.1)] text-center transition-transform duration-200"
+      class="container w-full max-w-[1240px] bg-card-bg p-6 md:p-8 rounded-2xl shadow-[0_10px_35px_rgba(0,0,0,0.08)] text-center transition-all duration-200"
     >
-      <h1 class="text-3xl font-bold text-primary mb-2.5">
-        <i class="fa-solid fa-camera mr-2"></i>警用影像格式轉換工具
-      </h1>
-      <p class="text-[#7f8c8d] text-[0.95em] mb-7 leading-relaxed">
-        本機端離線作業，確保影像隱私不外流。<br />支援 HEIC/PNG/WebP 轉 JPG，保留原始解析度，對接行政報表自動化流程。
-      </p>
-
-      <!-- 使用步驟說明 -->
-      <section
-        class="usage-guide flex flex-col md:flex-row justify-center items-center mb-6 bg-[#f8fafc] p-4 rounded-xl border border-slate-200 gap-4 md:gap-0 relative"
-      >
-        <div class="step flex flex-col items-center gap-2 text-[#333]">
-          <div
-            class="step-icon text-[1.2rem] text-accent bg-white w-9 h-9 flex items-center justify-center rounded-full shadow-sm"
-          >
-            <i class="fa-solid fa-images"></i>
-          </div>
-          <span class="text-[0.85rem] font-semibold">1. 選取或匯入</span>
+      <!-- 頂部 Header -->
+      <div class="flex flex-col md:flex-row items-center justify-between border-b border-slate-100 pb-4 mb-6 gap-3 text-left">
+        <div>
+          <h1 class="text-2xl font-bold text-primary flex items-center gap-2">
+            <i class="fa-solid fa-scale-balanced text-accent"></i> 警用影像格式轉換與司法鑑識工具
+          </h1>
+          <p class="text-[#7f8c8d] text-xs mt-1">
+            純本機離線作業，證物隱私不外流。支援 PDF 掃描公文細紋與雜訊殘影淨化、雙畫布細節摳圖。
+          </p>
         </div>
-        <div class="step-arrow hidden md:block text-slate-300 mx-4 text-sm">
-          <i class="fa-solid fa-chevron-right"></i>
+        <div class="flex items-center gap-2 bg-[#f8fafc] px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600">
+          <i class="fa-solid fa-shield-halved text-success"></i> 本機離線安全防禦中
         </div>
-        <div class="step flex flex-col items-center gap-2 text-[#333]">
-          <div
-            class="step-icon text-[1.2rem] text-accent bg-white w-9 h-9 flex items-center justify-center rounded-full shadow-sm"
-          >
-            <i class="fa-solid fa-rocket"></i>
-          </div>
-          <span class="text-[0.85rem] font-semibold">2. 執行轉檔</span>
-        </div>
-
-        <!-- 齒輪按鈕 (進階設定) -->
-        <button
-          id="btnToggleConfig"
-          class="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-primary transition-colors hover:rotate-45 duration-300"
-          title="參數設定"
-        >
-          <i class="fa-solid fa-gear text-lg"></i>
-        </button>
-      </section>
-
-      <!-- 設定面板 (隱藏，保留結構以避免 JS 報錯) -->
-      <div class="settings-panel hidden">
-        <div id="dpiButtonGroup"></div>
-        <input type="checkbox" id="chkSharpen" />
       </div>
 
-      <!-- 背景遮罩 (Overlay) -->
-      <div
-        id="configOverlay"
-        class="fixed inset-0 bg-black/40 z-[90] hidden opacity-0 transition-opacity duration-300"
-      ></div>
-
-      <!-- 進階設定面板 (側邊抽屜) -->
-      <div
-        id="configPanel"
-        class="fixed top-0 right-0 h-full w-[320px] bg-white shadow-[-10px_0_30px_rgba(0,0,0,0.1)] z-[100] transform translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col pointer-events-none data-[open=true]:translate-x-0 data-[open=true]:pointer-events-auto"
-      >
-        <!-- 抽屜標題列 -->
-        <div
-          class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100"
-        >
-          <h3 class="text-base font-bold text-primary flex items-center gap-2">
-            <i class="fa-solid fa-sliders text-accent"></i> 進階轉檔參數設定
-          </h3>
-          <button
-            id="btnCloseConfig"
-            class="text-slate-400 hover:text-danger transition-colors p-1"
-            aria-label="關閉設定"
+      <!-- ⚡ 左右雙欄大氣工作台 Layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 text-left items-start">
+        
+        <!-- ==================== 左欄：檔案採集與名單管理區 (5 Cols / ~42%) ==================== -->
+        <div class="lg:col-span-5 flex flex-col gap-5">
+          
+          <!-- 上傳區 -->
+          <div
+            class="upload-area border-[3px] border-dashed border-[#cbd5e0] rounded-2xl p-7 cursor-pointer bg-white transition-all duration-300 relative overflow-hidden group hover:border-accent hover:bg-[#ebf8ff] hover:-translate-y-0.5 text-center"
+            id="dropArea"
           >
-            <i class="fa-solid fa-xmark text-xl"></i>
-          </button>
-        </div>
-
-        <!-- 滾動內容區 -->
-        <div class="flex-1 overflow-y-auto pr-1 -mr-1 space-y-8">
-          <!-- 恢復預設值按鈕 -->
-          <div class="flex justify-start">
-            <button
-              id="btnResetConfig"
-              class="text-[12px] text-accent hover:underline flex items-center gap-1"
+            <div
+              class="upload-icon text-4xl text-accent mb-2 group-hover:scale-110 transition-transform"
             >
-              <i class="fa-solid fa-rotate-left"></i> 重設為預設參數
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+            </div>
+            <div class="upload-text text-base text-[#4a5568] font-bold">
+              點擊上傳 或 拖放影片 / 圖片 / PDF至此
+            </div>
+            <div class="upload-subtext text-[12px] text-[#a0aec0] mt-1">
+              支援 MP4, MOV, WebM, JPG, PNG, HEIC, PDF (含掃描件細紋濾除)
+            </div>
+          </div>
+          <input
+            type="file"
+            id="fileInput"
+            multiple
+            accept="image/*, video/*, .heic, application/pdf"
+            class="hidden"
+          />
+
+          <!-- 檔案清單 -->
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+              <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <i class="fa-solid fa-list-check text-accent"></i> 已載入檔案清單 (<span id="txtFileCount" class="text-accent">0</span>)
+              </span>
+              <span class="text-[10px] text-slate-400">支援單檔獨立預覽與刪除</span>
+            </div>
+
+            <div
+              class="file-list-container text-left bg-white border border-[#eee] rounded-xl p-2.5 max-h-[220px] overflow-y-auto hidden file-list space-y-1.5"
+              id="fileList"
+            ></div>
+
+            <div id="emptyFileListHint" class="text-xs text-slate-400 text-center py-6">
+              尚未選擇任何檔案。請拖放或點擊上方區塊匯入。
+            </div>
+          </div>
+
+          <!-- 全域作業按鈕組 -->
+          <div class="btn-group flex flex-col sm:flex-row gap-3">
+            <button
+              id="btnConvert"
+              class="btn btn-primary bg-success text-white hover:bg-[#219150] border-none py-3.5 px-4 rounded-xl text-sm font-bold cursor-pointer transition-all duration-200 flex-1 flex items-center justify-center gap-2 opacity-60 pointer-events-none data-[active=true]:opacity-100 data-[active=true]:pointer-events-auto data-[active=true]:shadow-md"
+            >
+              <span><i class="fa-solid fa-rocket"></i> 開始圖片/PDF轉檔</span>
+            </button>
+            <button
+              id="btnClear"
+              class="btn btn-danger bg-danger text-white hover:bg-[#a93226] border-none py-3.5 px-4 rounded-xl text-sm font-bold cursor-pointer transition-all duration-200 flex-[0.6] flex items-center justify-center gap-2 opacity-60 pointer-events-none data-[active=true]:opacity-100 data-[active=true]:pointer-events-auto data-[active=true]:shadow-md"
+            >
+              <span><i class="fa-solid fa-trash-can"></i> 清空名單</span>
             </button>
           </div>
 
-          <!-- 參數調整項 -->
-          <div class="space-y-7">
-            <!-- 切片重疊長度 -->
-            <div class="space-y-3">
-              <div class="flex justify-between items-baseline">
-                <label class="text-[13px] font-bold text-slate-700"
-                  >切片重疊長度 (CM)</label
-                >
-                <div class="flex items-center gap-1">
-                  <span
-                    id="cfg-overlap-cm-val"
-                    class="text-[13px] font-mono font-bold text-accent"
-                    >2.0</span
-                  >
-                  <span class="text-[11px] text-slate-400">cm</span>
-                </div>
-              </div>
-              <input
-                type="range"
-                id="cfg-overlap-cm"
-                min="0"
-                max="10"
-                step="0.1"
-                aria-label="切片重疊長度"
-                class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent"
-              />
-              <p class="text-[11px] text-slate-400 leading-normal">
-                增加：避免文字被切斷。建議設定為 1.5~2.5 cm。
-              </p>
+          <!-- 進度條 -->
+          <div class="progress-container hidden" id="progressArea">
+            <div class="progress-bar-bg w-full bg-[#e2e8f0] h-2 rounded-full overflow-hidden">
+              <div class="progress-fill h-full w-0 bg-accent transition-[width] duration-300 rounded-full" id="progressBar"></div>
             </div>
+            <p class="status-text mt-2 text-xs text-[#4a5568] font-semibold text-center" id="statusText">待命中</p>
+          </div>
 
-            <!-- 切片目標尺寸 -->
-            <div class="space-y-4">
-              <label class="text-[13px] font-bold text-slate-700 block">切片目標尺寸 (CM)</label>
-              
-              <div class="grid grid-cols-2 gap-4">
-                <div class="space-y-2">
-                  <div class="flex justify-between">
-                    <span class="text-[11px] text-slate-500">寬度 (W)</span>
-                    <span id="cfg-width-cm-val" class="text-[12px] font-mono font-bold text-accent">8.5</span>
+        </div>
+
+        <!-- ==================== 右欄：參數控制與司法鑑識工作室 (7 Cols / ~58%) ==================== -->
+        <div class="lg:col-span-7 flex flex-col gap-5">
+          
+          <!-- ⚙️ 圖片與 PDF 進階控制面板 -->
+          <div id="cardsContainer" class="flex flex-col gap-4 transition-all duration-300">
+            
+            <!-- 卡片 1：🖼️ 圖片格式與品質控制卡片 -->
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <i class="fa-solid fa-image text-accent"></i> 圖片格式與品質控制
+                </span>
+                <span class="text-[10px] bg-accent/10 text-accent font-semibold px-2 py-0.5 rounded">即時生效</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+                <div class="sm:col-span-6 space-y-1">
+                  <label class="text-[11px] font-bold text-slate-600">輸出檔案格式</label>
+                  <div class="grid grid-cols-3 gap-1 bg-slate-200/80 p-1 rounded-xl">
+                    <button type="button" data-format="image/jpeg" class="segmented-btn py-1.5 text-xs font-bold text-slate-600 rounded-lg" data-active="true">JPEG</button>
+                    <button type="button" data-format="image/png" class="segmented-btn py-1.5 text-xs font-bold text-slate-600 rounded-lg" data-active="false">PNG</button>
+                    <button type="button" data-format="image/webp" class="segmented-btn py-1.5 text-xs font-bold text-slate-600 rounded-lg" data-active="false">WebP</button>
                   </div>
-                  <input type="range" id="cfg-width-cm" min="5" max="30" step="0.5" class="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent" />
                 </div>
-                <div class="space-y-2">
-                  <div class="flex justify-between">
-                    <span class="text-[11px] text-slate-500">高度 (H)</span>
-                    <span id="cfg-height-cm-val" class="text-[12px] font-mono font-bold text-accent">19.0</span>
-                  </div>
-                  <input type="range" id="cfg-height-cm" min="5" max="50" step="0.5" class="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent" />
-                </div>
-              </div>
 
-              <!-- 預設比例按鈕 -->
-              <div class="flex gap-2 flex-wrap">
-                <button onclick="window.app.setQuickSize(8.5, 19, 2)" class="text-[10px] px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors">標準 (8.5x19)</button>
-                <button onclick="window.app.setQuickSize(21, 29.7, 3)" class="text-[10px] px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors">A4 (21x29.7)</button>
-              </div>
-            </div>
-
-
-
-            <!-- 長截圖判定比例 -->
-            <div class="space-y-3">
-              <div class="flex justify-between items-baseline">
-                <label class="text-[13px] font-bold text-slate-700"
-                  >長截圖偵測靈敏度</label
-                >
-                <span
-                  id="cfg-threshold-val"
-                  class="text-[13px] font-mono font-bold text-accent"
-                  >2.5</span
-                >
-              </div>
-              <input
-                type="range"
-                id="cfg-threshold"
-                min="1.5"
-                max="5"
-                step="0.1"
-                aria-label="長截圖偵測靈敏度"
-                class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent"
-              />
-              <p class="text-[11px] text-slate-400 leading-normal">
-                增加：判定標準較嚴格，僅極長的圖才執行分割。<br />
-                減少：較容易觸發自動分割邏輯。
-              </p>
-            </div>
-
-            <!-- JPEG 輸出品質 -->
-            <div class="space-y-3">
-              <div class="flex justify-between items-baseline">
-                <label class="text-[13px] font-bold text-slate-700"
-                  >影像輸出品質 (JPEG)</label
-                >
-                <span
-                  id="cfg-quality-val"
-                  class="text-[13px] font-mono font-bold text-accent"
-                  >0.95</span
-                >
-              </div>
-              <input
-                type="range"
-                id="cfg-quality"
-                min="0.5"
-                max="1"
-                step="0.01"
-                aria-label="影像輸出品質"
-                class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent"
-              />
-              <p class="text-[11px] text-slate-400 leading-normal">
-                調高：畫質細膩清晰，但檔案體積較大。<br />
-                調低：節省磁碟空間，但可能出現雜訊。
-              </p>
-            </div>
-
-
-
-            <div class="pt-4 border-t border-slate-100">
-              <h4 class="text-[12px] font-bold text-slate-400 mb-4 uppercase tracking-wider">影片轉截圖設定</h4>
-              
-              <!-- 影片擷取靈敏度 -->
-              <div class="space-y-3 mb-6">
-                <div class="flex justify-between items-baseline">
-                  <label class="text-[13px] font-bold text-slate-700"
-                    >畫面偵測靈敏度 (變動率)</label
-                  >
-                  <span
-                    id="cfg-video-delta-val"
-                    class="text-[13px] font-mono font-bold text-accent"
-                    >5</span
-                  >
-                </div>
-                <input
-                  type="range"
-                  id="cfg-video-delta"
-                  min="1"
-                  max="20"
-                  step="1"
-                  aria-label="畫面偵測靈敏度"
-                  class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent"
-                />
-                <p class="text-[11px] text-slate-400 leading-normal">
-                  調低：微小變動即擷取 (產生圖片較多)<br />
-                  調高：僅在大範圍變動時擷取 (結果較精簡)
-                </p>
-              </div>
-
-              <!-- 影片取樣間隔 -->
-              <div class="space-y-3">
-                <div class="flex justify-between items-baseline">
-                  <label class="text-[13px] font-bold text-slate-700"
-                    >影片取樣頻率 (秒)</label
-                  >
-                  <span
-                    id="cfg-video-step-val"
-                    class="text-[13px] font-mono font-bold text-accent"
-                    >0.5</span
-                  >
-                </div>
-                <input
-                  type="range"
-                  id="cfg-video-step"
-                  min="0.1"
-                  max="2.0"
-                  step="0.1"
-                  aria-label="影片取樣頻率"
-                  class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent"
-                />
-              </div>
-
-              <!-- 分頁重疊比例 (新增) -->
-              <div class="space-y-3 pt-6 border-t border-slate-50">
-                <div class="flex justify-between items-baseline">
-                  <label class="text-[13px] font-bold text-slate-700"
-                    >畫面重疊比例 (%)</label
-                  >
-                  <span
-                    id="cfg-video-overlap-val"
-                    class="text-[13px] font-mono font-bold text-accent"
-                    >20</span
-                  >
-                </div>
-                <input
-                  type="range"
-                  id="cfg-video-overlap"
-                  min="0"
-                  max="50"
-                  step="5"
-                  aria-label="畫面重疊比例"
-                  class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent"
-                />
-                <p class="text-[11px] text-slate-400 leading-normal">
-                  調高：相鄰截圖間重複內容增多，方便比對。<br />
-                  調低：減少產生冗餘重複的頁面。
-                </p>
-              </div>
-
-              <div class="pt-6 border-t border-slate-50">
-                <h4 class="text-[12px] font-bold text-slate-400 mb-4 uppercase tracking-wider">PDF 轉檔設定</h4>
-                
-                <!-- PDF 轉檔倍率 -->
-                <div class="space-y-3">
+                <div class="sm:col-span-6 space-y-1" id="qualityControlBox">
                   <div class="flex justify-between items-baseline">
-                    <label class="text-[13px] font-bold text-slate-700"
-                      >PDF 轉檔解析度 (倍率)</label
-                    >
-                    <span
-                      id="cfg-pdf-scale-val"
-                      class="text-[13px] font-mono font-bold text-accent"
-                      >2.0</span
-                    >
+                    <label class="text-[11px] font-bold text-slate-600">壓縮品質 (JPEG / WebP)</label>
+                    <span id="cfg-quality-val" class="text-xs font-mono font-bold text-accent">0.95</span>
                   </div>
-                  <input
-                    type="range"
-                    id="cfg-pdf-scale"
-                    min="1.0"
-                    max="4.0"
-                    step="0.5"
-                    aria-label="PDF 轉檔倍率"
-                    class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-accent"
-                  />
-                  <p class="text-[11px] text-slate-400 leading-normal">
-                    調高：圖片更清晰（適合列印或 OCR），但檔案較大。<br />
-                    建議：一般閱讀 1.5~2.0 即可。
-                  </p>
+                  <input type="range" id="cfg-quality" min="0.5" max="1" step="0.01" value="0.95" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-accent" />
                 </div>
               </div>
             </div>
+
+            <!-- 卡片 2：📄 PDF 指定頁碼與旋轉控制卡片 (含細紋濾除開關) -->
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <i class="fa-solid fa-file-pdf text-danger"></i> PDF 轉檔與公文淨化控制
+                </span>
+                <span class="text-[10px] bg-danger/10 text-danger font-semibold px-2 py-0.5 rounded">細紋與雜訊濾除</span>
+              </div>
+
+              <!-- ⚡ ✨ 新增：PDF 掃描件細紋/殘影濾除器開關 -->
+              <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-[#d97706] fa-broom text-amber-600 text-sm"></i>
+                  <div>
+                    <div class="text-xs font-bold text-amber-900">🧹 濾除公文 PDF 掃描殘影與黑色橫向細紋</div>
+                    <div class="text-[10px] text-amber-700">解決掃描公文 PDF 轉圖時出現的橫向干擾黑細線</div>
+                  </div>
+                </div>
+                <input type="checkbox" id="cfg-remove-pdf-streaks" checked class="w-4 h-4 accent-amber-600 cursor-pointer" />
+              </div>
+
+              <div class="space-y-1.5">
+                <div class="flex justify-between items-baseline">
+                  <label class="text-[11px] font-bold text-slate-600">指定頁碼 (例: 1-5, 8, 11-13)</label>
+                  <button type="button" id="btnResetPdfPages" class="text-[10px] text-accent hover:underline">設為全部 ALL</button>
+                </div>
+                <input type="text" id="cfg-pdf-pages" placeholder="輸入 all 代表全選" value="all" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-xs font-mono text-slate-700 focus:outline-none focus:border-accent" />
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="space-y-1">
+                  <label class="text-[11px] font-bold text-slate-600">順時針旋轉</label>
+                  <select id="cfg-pdf-rotation" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                    <option value="0">0° (正向)</option>
+                    <option value="90">90° (向右 ↪)</option>
+                    <option value="180">180° (顛倒 🙃)</option>
+                    <option value="270">270° (向左 ↩)</option>
+                  </select>
+                </div>
+
+                <div class="space-y-1">
+                  <div class="flex justify-between items-baseline">
+                    <label class="text-[11px] font-bold text-slate-600">解析度倍率</label>
+                    <span id="cfg-pdf-scale-val" class="text-xs font-mono font-bold text-accent">2.0</span>
+                  </div>
+                  <input type="range" id="cfg-pdf-scale" min="1.0" max="4.0" step="0.5" value="2.0" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-accent" />
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ⚖️ 司法鑑識工作室 -->
+          <div id="forensicStudio" class="hidden bg-slate-900 text-white p-5 rounded-2xl shadow-2xl transition-all duration-300 space-y-5">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-700 pb-3 gap-2">
+              <div class="flex items-center gap-2 text-success font-bold text-base">
+                <i class="fa-solid fa-shield-halved text-lg"></i>
+                <span>⚖️ 司法鑑識手動精確選頁工作室</span>
+              </div>
+              
+              <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                <input type="text" id="txtCustomCasePrefix" placeholder="自訂案號 (例: A1130723)" class="bg-slate-800 border border-slate-700 text-xs px-2.5 py-1 rounded-lg text-slate-200 focus:outline-none focus:border-accent font-mono w-[150px]" />
+                
+                <button id="btnCloseStudioVideo" class="text-xs bg-danger/80 hover:bg-danger text-white px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 font-semibold cursor-pointer">
+                  <i class="fa-solid fa-xmark"></i> 清除影片
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+              <div class="md:col-span-7 flex flex-col items-center">
+                <div class="text-[11px] font-semibold text-slate-400 mb-1.5 flex items-center justify-between w-full px-1">
+                  <span>主對話畫面 (無死角)</span>
+                  <span id="txtCurrentVideoTime" class="font-mono text-accent font-bold">00:00.0 / 00:00.0</span>
+                </div>
+                
+                <div class="relative w-[320px] sm:w-[360px] md:w-[390px] h-[560px] sm:h-[620px] md:h-[660px] bg-slate-950 rounded-[42px] p-3.5 border-4 border-slate-700 shadow-2xl overflow-hidden flex flex-col items-center">
+                  <div id="mobileCanvasContainer" class="relative w-full h-full rounded-[28px] overflow-hidden bg-black flex items-center justify-center">
+                    <canvas id="videoStudioCanvas" class="w-full h-full object-contain"></canvas>
+
+                    <div id="headerMask" class="absolute top-0 left-0 w-full bg-red-500/30 border-b border-red-500 border-dashed text-red-200 text-[10px] flex items-center justify-center font-mono pointer-events-none" style="height: 10%;">
+                      <span>🚫 頂部遮罩</span>
+                    </div>
+                    <div id="footerMask" class="absolute bottom-0 left-0 w-full bg-red-500/30 border-t border-red-500 border-dashed text-red-200 text-[10px] flex items-center justify-center font-mono pointer-events-none" style="height: 10%;">
+                      <span>🚫 底部遮罩</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="w-full mt-3 bg-slate-800/90 p-3 rounded-xl border border-slate-700 space-y-2">
+                  <input type="range" id="rngVideoTime" min="0" max="100" step="0.05" value="0" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-accent" />
+                  <div class="flex items-center justify-between gap-1 text-xs">
+                    <button id="btnStepBackSec" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-slate-200 font-semibold" title="-1s (Up)">-1s</button>
+                    <button id="btnStepBackFrame" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-slate-200 font-semibold" title="-0.1s (Left)">-0.1s</button>
+                    <span class="text-[10px] text-slate-400 font-mono">←/→鍵, Space 截圖, Z 復原</span>
+                    <button id="btnStepForwardFrame" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-slate-200 font-semibold" title="+0.1s (Right)">+0.1s</button>
+                    <button id="btnStepForwardSec" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-slate-200 font-semibold" title="+1s (Down)">+1s</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="md:col-span-5 flex flex-col gap-4 justify-between">
+                <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700 space-y-2">
+                  <div class="text-xs font-bold text-slate-200 flex items-center justify-between">
+                    <span class="text-accent flex items-center gap-1.5"><i class="fa-solid fa-code-compare"></i> 上頁末行對照</span>
+                    <span id="txtLastCapturedTime" class="text-[10px] text-slate-400 font-mono">未擷取</span>
+                  </div>
+                  <div class="w-full h-[135px] bg-slate-950 rounded-lg border border-slate-700 overflow-hidden relative flex items-center justify-center">
+                    <canvas id="lastCapturedCanvas" class="w-full h-full object-contain"></canvas>
+                    <div id="noReferenceHint" class="text-xs text-slate-500 font-mono">無對照圖</div>
+                  </div>
+                </div>
+
+                <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700 space-y-3">
+                  <div class="space-y-1.5">
+                    <div class="flex justify-between text-xs font-semibold text-slate-300">
+                      <span>頂部忽略遮罩</span>
+                      <span id="txtHeaderCropVal" class="text-accent font-mono font-bold">10%</span>
+                    </div>
+                    <input type="range" id="rngHeaderCrop" min="0" max="30" value="10" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-accent" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <div class="flex justify-between text-xs font-semibold text-slate-300">
+                      <span>底部忽略遮罩</span>
+                      <span id="txtFooterCropVal" class="text-accent font-mono font-bold">10%</span>
+                    </div>
+                    <input type="range" id="rngFooterCrop" min="0" max="30" value="10" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-accent" />
+                  </div>
+                </div>
+
+                <div class="space-y-2.5 pt-1">
+                  <button id="btnCaptureCurrentFrame" class="w-full bg-success hover:bg-[#219150] active:bg-[#1a753f] text-white font-bold py-3.5 px-4 rounded-xl text-sm transition-all shadow-xl flex flex-col items-center justify-center gap-1 cursor-pointer active:scale-95">
+                    <div class="flex items-center gap-2 text-base">
+                      <i class="fa-solid fa-camera"></i> <span>📸 擷取當前頁為證物</span>
+                    </div>
+                    <span class="text-[11px] text-emerald-100 font-normal">按 [ 空白鍵 Space ] 秒截</span>
+                  </button>
+
+                  <button id="btnUndoLastCapture" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1.5 font-semibold cursor-pointer border border-slate-700">
+                    <i class="fa-solid fa-rotate-left"></i> 復原/刪除上一頁截圖 (Z 鍵)
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- 已審核證物佇列底片膠捲 -->
+      <div id="evidenceQueueSection" class="hidden mt-6 text-left bg-slate-900 text-white p-5 rounded-2xl shadow-xl transition-all duration-300">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+          <span class="text-sm font-bold text-slate-200 flex items-center gap-2">
+            <i class="fa-solid fa-folder-closed text-accent"></i> 已審核證物清單膠捲 (<span id="txtEvidenceCount" class="text-accent">0</span> 頁)
+          </span>
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-slate-400 hidden sm:inline">💡 點擊縮圖可放大目視審核</span>
+            <button id="btnClearEvidenceQueue" class="text-xs text-danger hover:underline">清空所有證物</button>
           </div>
         </div>
 
-        <!-- 頁尾提醒 -->
-        <div class="mt-auto pt-6 border-t border-slate-50">
-          <p
-            class="text-[11px] text-slate-400 italic text-center leading-normal"
-          >
-            設定值將自動儲存於瀏覽器，<br />下次開啟時將延續目前參數。
+        <div id="evidenceFilmstrip" class="flex gap-4 overflow-x-auto pb-2 custom-scroll min-h-[140px] items-center bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
+          <div id="emptyQueueHint" class="w-full text-center text-slate-500 text-xs py-4">
+            尚未擷取任何頁面。請在上方選定對話畫面後按下「空白鍵 Space」擷取。
+          </div>
+        </div>
+      </div>
+
+
+
+      <!-- 證物圖檔放大 Modal -->
+      <div id="imageLightboxModal" class="fixed inset-0 bg-black/85 z-[200] hidden flex items-center justify-center p-4">
+        <div class="relative max-w-4xl w-full bg-slate-900 rounded-2xl p-4 flex flex-col items-center gap-3 text-white border border-slate-700 shadow-2xl">
+          <div class="flex justify-between items-center w-full border-b border-slate-800 pb-2">
+            <span id="txtLightboxTitle" class="text-xs font-mono font-bold text-accent">證物放大審核</span>
+            <button id="btnCloseLightbox" class="text-slate-400 hover:text-white text-base"><i class="fa-solid fa-xmark"></i> 關閉</button>
+          </div>
+          <div class="w-full max-h-[75vh] flex items-center justify-center overflow-hidden bg-black rounded-lg p-2">
+            <img id="imgLightboxPreview" class="max-w-full max-h-[70vh] object-contain rounded" />
+          </div>
+          <div class="text-xs text-slate-400 font-mono">100% 高清無失真比例對照</div>
+        </div>
+      </div>
+
+      <!-- PDF 密碼對話框 -->
+      <div id="pdfPasswordModal" class="fixed inset-0 bg-black/60 z-[150] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-sm w-full text-left shadow-2xl space-y-4">
+          <div class="flex items-center gap-2 text-danger font-bold text-base">
+            <i class="fa-solid fa-lock text-lg"></i>
+            <span>🔒 此 PDF 設有保密密碼</span>
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            請輸入密碼以解密並解析 PDF 頁面：
           </p>
+          <input type="password" id="txtPdfPassword" placeholder="輸入解密密碼..." class="w-full border border-slate-300 rounded-lg p-2.5 text-sm font-mono focus:outline-none focus:border-accent" />
+          <div class="flex justify-end gap-2 pt-2">
+            <button id="btnCancelPdfPassword" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-semibold">取消</button>
+            <button id="btnSubmitPdfPassword" class="px-4 py-2 bg-accent hover:bg-[#2980b9] text-white rounded-lg text-xs font-semibold">解密並繼續</button>
+          </div>
         </div>
       </div>
 
-      <!-- 上傳區 -->
-      <div
-        class="upload-area border-[3px] border-dashed border-[#cbd5e0] rounded-xl p-10 cursor-pointer bg-white transition-all duration-300 relative overflow-hidden group hover:border-accent hover:bg-[#ebf8ff] hover:-translate-y-0.5"
-        id="dropArea"
-      >
-        <div
-          class="upload-icon text-5xl text-accent mb-2.5 group-hover:scale-110 transition-transform"
-        >
-          <i class="fa-solid fa-folder-open"></i>
-        </div>
-        <div class="upload-text text-lg text-[#4a5568] font-medium">
-          點擊此處 或 將檔案拖放至此
-        </div>
-        <div class="upload-subtext text-[13px] text-[#a0aec0] mt-1.5">
-          支援 JPG, HEIC, PNG, MP4, MOV, PDF 等格式
-        </div>
-      </div>
-      <input
-        type="file"
-        id="fileInput"
-        multiple
-        accept="image/*, video/*, .heic, application/pdf"
-        class="hidden"
-        aria-label="上傳圖片、影片或 PDF"
-      />
-
-      <!-- 檔案清單 -->
-      <div
-        class="file-list-container mt-5 text-left bg-white border border-[#eee] rounded-xl p-2.5 max-h-[150px] overflow-y-auto hidden file-list"
-        id="fileList"
-      ></div>
-
-      <!-- 按鈕組 -->
-      <div class="btn-group flex flex-col md:flex-row gap-6 mt-10">
-        <button
-          id="btnConvert"
-          class="btn btn-primary bg-success text-white hover:bg-[#219150] border-none py-3 px-5 rounded-xl text-[15px] font-semibold cursor-pointer transition-all duration-200 flex-1 flex items-center justify-center gap-2 opacity-60 pointer-events-none data-[active=true]:opacity-100 data-[active=true]:pointer-events-auto data-[active=true]:shadow-md"
-        >
-          <span><i class="fa-solid fa-rocket"></i> 開始轉檔</span>
-        </button>
-        <button
-          id="btnReconvert"
-          class="btn btn-warning bg-warning text-white hover:bg-[#d35400] border-none py-3 px-5 rounded-xl text-[15px] font-semibold cursor-pointer transition-all duration-200 flex-1 flex items-center justify-center gap-2 hidden"
-        >
-          <span><i class="fa-solid fa-rotate"></i> 重新執行轉檔</span>
-        </button>
-        <button
-          id="btnClear"
-          class="btn btn-danger bg-danger text-white hover:bg-[#a93226] border-none py-3 px-5 rounded-xl text-[15px] font-semibold cursor-pointer transition-all duration-200 flex-[0.5] flex items-center justify-center gap-2 opacity-60 pointer-events-none data-[active=true]:opacity-100 data-[active=true]:pointer-events-auto data-[active=true]:shadow-md"
-        >
-          <span><i class="fa-solid fa-trash-can"></i> 清空名單</span>
-        </button>
-      </div>
-
-      <!-- 進度條 -->
-      <div class="progress-container mt-10 hidden" id="progressArea">
-        <div
-          class="progress-bar-bg w-full bg-[#e2e8f0] h-2.5 rounded-full overflow-hidden"
-        >
-          <div
-            class="progress-fill h-full w-0 bg-accent transition-[width] duration-300 rounded-full"
-            id="progressBar"
-          ></div>
-        </div>
-        <p
-          class="status-text mt-2.5 text-sm text-[#4a5568] font-semibold"
-          id="statusText"
-        >
-          待命中
-        </p>
-      </div>
-
-      <footer
-        class="mt-10 text-center text-[#7f8c8d] text-sm pt-5 border-t border-[#ecf0f1]"
-      >
-        <p>&copy; 2025 行政影像自動化工具 v4.0</p>
-      
-      <p style="text-align: center; font-size: 0.8rem; color: #888; margin-top: 10px; padding-bottom: 20px;">版本號碼：v4.0 (Build 17) | 開發者資訊：Chia-Hao</p>
-    </footer>
+      <footer class="mt-8 text-center text-[#7f8c8d] text-sm pt-4 border-t border-[#ecf0f1]">
+        <p>&copy; 2025 警用影像格式轉換與司法鑑識工具 v10.0</p>
+        <p style="text-align: center; font-size: 0.8rem; color: #888; margin-top: 6px; padding-bottom: 10px;">版本號碼：v10.0 (Build 70) | PDF 掃描公文細紋殘影淨化濾除 | 開發者：Chia-Hao</p>
+      </footer>
     </div>
 
     <script>
-      /**
-       * 行政影像自動化工具 - 全域配置管理
-       * 包含預設參數、儲存金鑰與檔案類型定義
-       */
       const CONFIG_MANAGER = {
-        // 本機儲存金鑰
         STORAGE_KEY: "IMAGE_CONVERTER_user_config",
-
-        // 預設配置參數 (所有可變變數集中於此，嚴禁魔術數字)
         DEFAULT_CONFIG: {
-          targetWidthCM: 8.5, // 目標寬度 (8.5cm)
-          targetHeightCM: 19.0, // 目標高度 (19cm)
-          overlapCM: 2.0, // 重疊長度 (2cm)
-          ratioThreshold: 2.5, // 長截圖判定比例 (2.5)
-          outputQuality: 0.95, // JPEG 輸出品質 (0.95)
-          videoDelta: 5, // 影片擷取靈敏度 (5%)
-          videoStep: 0.3, // 影片掃描間隔 (0.3s)
-          videoOverlap: 20, // 影片分頁重疊比例 (20%)
-          pdfScale: 2.0, // PDF 轉檔解析度倍率 (2.0)
+          outputFormat: "image/jpeg",
+          outputQuality: 0.95,
+          fillWhiteBg: true,
+          removeBgMode: "none",
+          bgTolerance: 30,
+          pickedColor: null,
+          pdfScale: 2.0,
+          pdfPages: "all",
+          pdfRotation: 0,
+          headerCropRatio: 10,
+          footerCropRatio: 10,
+          removePdfStreaks: true, // ⚡ 預設開啟 PDF 細紋濾除器
         },
-
-        // 支援的檔案類型說明
         SUPPORTED_TYPES: [
-          "image/jpeg",
-          "image/png",
-          "image/webp",
-          "image/heic",
-          "image/bmp",
-          "video/mp4",
-          "video/webm",
-          "video/quicktime",
-          "application/pdf",
+          "image/jpeg", "image/png", "image/webp", "image/heic", "image/bmp",
+          "video/mp4", "video/webm", "video/quicktime", "application/pdf",
         ],
-
-        // 支援的副檔名 (用於過濾)
         SUPPORTED_EXTENSIONS: [
-          ".jpg",
-          ".jpeg",
-          ".png",
-          ".webp",
-          ".heic",
-          ".bmp",
-          ".mp4",
-          ".mov",
-          ".webm",
-          ".pdf",
+          ".jpg", ".jpeg", ".png", ".webp", ".heic", ".bmp",
+          ".mp4", ".mov", ".webm", ".pdf",
         ],
-
-        // DPI 選項及其用途描述 (已移除)
-        DPI_OPTIONS: [],
       };
 
-      // 凍結物件以防止意外修改
       Object.freeze(CONFIG_MANAGER);
       Object.freeze(CONFIG_MANAGER.DEFAULT_CONFIG);
 
-      /**
-       * 行政影像自動化工具 - 核心邏輯
-       * 轉檔程序：格式轉換 -> 長截圖偵測 -> 自動分段切片
-       */
       const app = (function () {
-        // --- DOM 元素快取 ---
-        let fileInput, fileListContainer, dropArea;
-        let btnConvert, btnReconvert, btnClear;
-        let progressArea, progressBar, statusText;
+        let fileInput, fileListContainer, dropArea, emptyFileListHint, txtFileCount;
+        let btnConvert, btnClear, progressArea, progressBar, statusText;
 
-        // --- 狀態變數 ---
+        // 控制卡片 DOM
+        let segmentedBtns, cfgQuality, cfgQualityVal, cfgFillWhite, cfgRemovePdfStreaks;
+        let cfgPdfPages, btnResetPdfPages, cfgPdfRotation, cfgPdfScale, cfgPdfScaleVal;
+        let pdfPasswordModal, txtPdfPassword, btnCancelPdfPassword, btnSubmitPdfPassword;
+
+        // 司法鑑識工作室 DOM
+        let forensicStudio, videoStudioCanvas, lastCapturedCanvas, noReferenceHint, btnCloseStudioVideo;
+        let rngVideoTime, txtCurrentVideoTime, txtLastCapturedTime, txtCustomCasePrefix;
+        let btnStepBackSec, btnStepBackFrame, btnStepForwardFrame, btnStepForwardSec;
+        let rngHeaderCrop, rngFooterCrop, txtHeaderCropVal, txtFooterCropVal, headerMask, footerMask;
+        let btnCaptureCurrentFrame, btnUndoLastCapture, evidenceQueueSection, evidenceFilmstrip, emptyQueueHint, txtEvidenceCount, btnClearEvidenceQueue;
+
+        let imageLightboxModal, imgLightboxPreview, txtLightboxTitle, btnCloseLightbox;
+
         let selectedFiles = [];
         let processedImages = [];
-
-        // --- 本機配置 ---
+        let manualEvidenceQueue = [];
         let config = { ...CONFIG_MANAGER.DEFAULT_CONFIG };
+        let activeStudioVideoBlob = null;
+        let activeStudioVideoElement = null;
+        let pendingPdfResolve = null;
+        let isCapturingLock = false;
 
-        /**
-         * 初始化應用程式
-         */
         function init() {
-          console.log("✅ 應用程式初始化中...");
+          console.log("✅ PDF 細紋濾除器 v10.0 初始化中...");
+          loadUserPreferences();
 
-          // 檢查 CONFIG_MANAGER 是否存在
-          if (typeof CONFIG_MANAGER === "undefined") {
-            console.error("❌ 錯誤：CONFIG_MANAGER 未定義。");
-            return;
-          }
-
-          loadUserPreferences(); // 載入使用者偏好設定
-
-          // 取得元件引用
           fileInput = document.getElementById("fileInput");
           fileListContainer = document.getElementById("fileList");
           dropArea = document.getElementById("dropArea");
+          emptyFileListHint = document.getElementById("emptyFileListHint");
+          txtFileCount = document.getElementById("txtFileCount");
+
           btnConvert = document.getElementById("btnConvert");
-          btnReconvert = document.getElementById("btnReconvert");
           btnClear = document.getElementById("btnClear");
-
-          // 驗證必要元件是否存在
-          const requiredElements = {
-            fileInput,
-            dropArea,
-            btnConvert,
-            btnClear,
-          };
-          for (const [name, el] of Object.entries(requiredElements)) {
-            if (!el) console.error(`❌ 找不到必要元件: ${name}`);
-          }
-
           progressArea = document.getElementById("progressArea");
           progressBar = document.getElementById("progressBar");
           statusText = document.getElementById("statusText");
 
+          segmentedBtns = document.querySelectorAll(".segmented-btn");
+          cfgQuality = document.getElementById("cfg-quality");
+          cfgQualityVal = document.getElementById("cfg-quality-val");
+          cfgFillWhite = document.getElementById("cfg-fill-white");
+          cfgRemovePdfStreaks = document.getElementById("cfg-remove-pdf-streaks");
+
+          cfgPdfPages = document.getElementById("cfg-pdf-pages");
+          btnResetPdfPages = document.getElementById("btnResetPdfPages");
+          cfgPdfRotation = document.getElementById("cfg-pdf-rotation");
+          cfgPdfScale = document.getElementById("cfg-pdf-scale");
+          cfgPdfScaleVal = document.getElementById("cfg-pdf-scale-val");
+
+          pdfPasswordModal = document.getElementById("pdfPasswordModal");
+          txtPdfPassword = document.getElementById("txtPdfPassword");
+          btnCancelPdfPassword = document.getElementById("btnCancelPdfPassword");
+          btnSubmitPdfPassword = document.getElementById("btnSubmitPdfPassword");
+
+          forensicStudio = document.getElementById("forensicStudio");
+          videoStudioCanvas = document.getElementById("videoStudioCanvas");
+          lastCapturedCanvas = document.getElementById("lastCapturedCanvas");
+          noReferenceHint = document.getElementById("noReferenceHint");
+          btnCloseStudioVideo = document.getElementById("btnCloseStudioVideo");
+          txtCustomCasePrefix = document.getElementById("txtCustomCasePrefix");
+
+          rngVideoTime = document.getElementById("rngVideoTime");
+          txtCurrentVideoTime = document.getElementById("txtCurrentVideoTime");
+          txtLastCapturedTime = document.getElementById("txtLastCapturedTime");
+
+          btnStepBackSec = document.getElementById("btnStepBackSec");
+          btnStepBackFrame = document.getElementById("btnStepBackFrame");
+          btnStepForwardFrame = document.getElementById("btnStepForwardFrame");
+          btnStepForwardSec = document.getElementById("btnStepForwardSec");
+
+          rngHeaderCrop = document.getElementById("rngHeaderCrop");
+          rngFooterCrop = document.getElementById("rngFooterCrop");
+          txtHeaderCropVal = document.getElementById("txtHeaderCropVal");
+          txtFooterCropVal = document.getElementById("txtFooterCropVal");
+          headerMask = document.getElementById("headerMask");
+          footerMask = document.getElementById("footerMask");
+
+          btnCaptureCurrentFrame = document.getElementById("btnCaptureCurrentFrame");
+          btnUndoLastCapture = document.getElementById("btnUndoLastCapture");
+          evidenceQueueSection = document.getElementById("evidenceQueueSection");
+          evidenceFilmstrip = document.getElementById("evidenceFilmstrip");
+          emptyQueueHint = document.getElementById("emptyQueueHint");
+          txtEvidenceCount = document.getElementById("txtEvidenceCount");
+          btnClearEvidenceQueue = document.getElementById("btnClearEvidenceQueue");
+
+          imageLightboxModal = document.getElementById("imageLightboxModal");
+          imgLightboxPreview = document.getElementById("imgLightboxPreview");
+          txtLightboxTitle = document.getElementById("txtLightboxTitle");
+          btnCloseLightbox = document.getElementById("btnCloseLightbox");
+
           bindEvents();
-          syncConfigToUI(); // 同步配置至介面
-          console.log("🚀 應用程式初始化完成。");
+          syncConfigToUI();
+          console.log("🚀 PDF 細紋濾除器 v10.0 初始化完成。");
         }
 
-        /**
-         * 從 localStorage 載入使用者偏好
-         */
         function loadUserPreferences() {
           const saved = localStorage.getItem(CONFIG_MANAGER.STORAGE_KEY);
           if (saved) {
-            try {
-              config = {
-                ...CONFIG_MANAGER.DEFAULT_CONFIG,
-                ...JSON.parse(saved),
-              };
-            } catch (e) {
-              console.error("⚠️ 無法剖析使用者設定:", e);
-            }
+            try { config = { ...CONFIG_MANAGER.DEFAULT_CONFIG, ...JSON.parse(saved) }; } catch (e) {}
           }
         }
 
-        /**
-         * 儲存設定至 localStorage
-         */
         function saveUserPreferences() {
-          try {
-            localStorage.setItem(
-              CONFIG_MANAGER.STORAGE_KEY,
-              JSON.stringify(config),
-            );
-          } catch (e) {
-            console.error("⚠️ 無法儲存使用者設定:", e);
-          }
+          try { localStorage.setItem(CONFIG_MANAGER.STORAGE_KEY, JSON.stringify(config)); } catch (e) {}
         }
 
-        /**
-         * 事件綁定
-         */
         function bindEvents() {
-          // 全域防止瀏覽器預設開啟檔案行為 (避免拖曳至框外時網頁跳轉)
           window.addEventListener("dragover", (e) => e.preventDefault(), false);
           window.addEventListener("drop", (e) => e.preventDefault(), false);
 
-          // 檔案拖放區域處理
-          ["dragenter", "dragover"].forEach((eventName) => {
-            dropArea.addEventListener(eventName, (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              dropArea.classList.add("border-success", "bg-[#f0fff4]");
-              dropArea.classList.remove("border-[#cbd5e0]", "bg-white");
-            }, false);
+          ["dragenter", "dragover"].forEach((evt) => {
+            dropArea.addEventListener(evt, (e) => { e.preventDefault(); dropArea.classList.add("border-success", "bg-[#f0fff4]"); });
           });
 
-          ["dragleave"].forEach((eventName) => {
-            dropArea.addEventListener(eventName, (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              dropArea.classList.remove("border-success", "bg-[#f0fff4]");
-              dropArea.classList.add("border-[#cbd5e0]", "bg-white");
-            }, false);
+          ["dragleave", "drop"].forEach((evt) => {
+            dropArea.addEventListener(evt, (e) => { e.preventDefault(); dropArea.classList.remove("border-success", "bg-[#f0fff4]"); });
           });
 
-          dropArea.addEventListener("drop", (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            dropArea.classList.remove("border-success", "bg-[#f0fff4]");
-            dropArea.classList.add("border-[#cbd5e0]", "bg-white");
-            handleFilesUpdate(e.dataTransfer.files);
-          }, false);
-
+          dropArea.addEventListener("drop", (e) => handleFilesUpdate(e.dataTransfer.files));
           dropArea.addEventListener("click", () => fileInput.click());
-          fileInput.addEventListener("change", (e) =>
-            handleFilesUpdate(e.target.files),
-          );
+          fileInput.addEventListener("change", (e) => handleFilesUpdate(e.target.files));
 
-          // 按鈕點擊事件
           btnConvert.addEventListener("click", () => startConversionProcess());
+          btnClear.addEventListener("click", resetAll);
 
-          btnReconvert.addEventListener("click", () => {
-            if (confirm("確定要套用最新設定並重新轉換嗎？")) {
-              startConversionProcess();
+          if (btnCloseStudioVideo) {
+            btnCloseStudioVideo.onclick = () => {
+              if (confirm("確定清除當前影片？")) closeVideoStudio();
+            };
+          }
+
+          segmentedBtns.forEach((btn) => {
+            btn.onclick = () => {
+              segmentedBtns.forEach((b) => b.setAttribute("data-active", "false"));
+              btn.setAttribute("data-active", "true");
+              config.outputFormat = btn.getAttribute("data-format");
+              saveUserPreferences();
+              updateEvidenceQueueUI();
+            };
+          });
+
+          if (cfgRemovePdfStreaks) {
+            cfgRemovePdfStreaks.onchange = (e) => {
+              config.removePdfStreaks = e.target.checked;
+              saveUserPreferences();
+            };
+          }
+
+          if (btnResetPdfPages) {
+            btnResetPdfPages.onclick = () => {
+              cfgPdfPages.value = "all";
+              config.pdfPages = "all";
+              saveUserPreferences();
+            };
+          }
+
+          window.addEventListener("keydown", (e) => {
+            if (!activeStudioVideoElement || forensicStudio.classList.contains("hidden")) return;
+            if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName) && document.activeElement.type !== "range") return;
+
+            if (e.key === "ArrowLeft") { e.preventDefault(); stepVideoTime(-0.1); }
+            else if (e.key === "ArrowRight") { e.preventDefault(); stepVideoTime(0.1); }
+            else if (e.key === "ArrowUp") { e.preventDefault(); stepVideoTime(-1.0); }
+            else if (e.key === "ArrowDown") { e.preventDefault(); stepVideoTime(1.0); }
+            else if (e.key === "z" || e.key === "Z") {
+              e.preventDefault();
+              undoLastCapture();
+            }
+            else if (e.code === "Space" || e.key === "c" || e.key === "C" || e.key === "Enter") {
+              e.preventDefault();
+              if (e.repeat || isCapturingLock) return;
+              isCapturingLock = true;
+
+              btnCaptureCurrentFrame.classList.add("scale-95", "ring-4", "ring-emerald-400");
+              setTimeout(() => btnCaptureCurrentFrame.classList.remove("scale-95", "ring-4", "ring-emerald-400"), 150);
+
+              captureCurrentStudioFrame().finally(() => {
+                setTimeout(() => { isCapturingLock = false; }, 250);
+              });
             }
           });
 
-          btnClear.addEventListener("click", resetAll);
+          if (rngVideoTime) rngVideoTime.oninput = (e) => seekVideoToTime(parseFloat(e.target.value));
 
+          if (btnStepBackSec) btnStepBackSec.onclick = () => stepVideoTime(-1.0);
+          if (btnStepBackFrame) btnStepBackFrame.onclick = () => stepVideoTime(-0.1);
+          if (btnStepForwardFrame) btnStepForwardFrame.onclick = () => stepVideoTime(0.1);
+          if (btnStepForwardSec) btnStepForwardSec.onclick = () => stepVideoTime(1.0);
+
+          if (rngHeaderCrop) {
+            rngHeaderCrop.oninput = (e) => {
+              config.headerCropRatio = parseFloat(e.target.value);
+              txtHeaderCropVal.innerText = `${config.headerCropRatio}%`;
+              headerMask.style.height = `${config.headerCropRatio}%`;
+              saveUserPreferences();
+            };
+          }
+
+          if (rngFooterCrop) {
+            rngFooterCrop.oninput = (e) => {
+              config.footerCropRatio = parseFloat(e.target.value);
+              txtFooterCropVal.innerText = `${config.footerCropRatio}%`;
+              footerMask.style.height = `${config.footerCropRatio}%`;
+              saveUserPreferences();
+            };
+          }
+
+          if (btnCaptureCurrentFrame) {
+            btnCaptureCurrentFrame.onclick = () => {
+              if (isCapturingLock) return;
+              isCapturingLock = true;
+              captureCurrentStudioFrame().finally(() => {
+                setTimeout(() => { isCapturingLock = false; }, 250);
+              });
+            };
+          }
+
+          if (btnUndoLastCapture) btnUndoLastCapture.onclick = undoLastCapture;
+
+          if (btnClearEvidenceQueue) {
+            btnClearEvidenceQueue.onclick = () => {
+              if (confirm("確定清空已手動擷取的證物？")) {
+                manualEvidenceQueue = [];
+                updateEvidenceQueueUI();
+              }
+            };
+          }
+
+          if (btnCloseLightbox) btnCloseLightbox.onclick = () => imageLightboxModal.classList.add("hidden");
+          if (imageLightboxModal) {
+            imageLightboxModal.onclick = (e) => {
+              if (e.target === imageLightboxModal) imageLightboxModal.classList.add("hidden");
+            };
+          }
+
+          if (btnSubmitPdfPassword) {
+            btnSubmitPdfPassword.onclick = () => {
+              const pass = txtPdfPassword.value;
+              pdfPasswordModal.classList.add("hidden");
+              if (pendingPdfResolve) pendingPdfResolve(pass);
+            };
+          }
+          if (btnCancelPdfPassword) {
+            btnCancelPdfPassword.onclick = () => {
+              pdfPasswordModal.classList.add("hidden");
+              if (pendingPdfResolve) pendingPdfResolve(null);
+            };
+          }
         }
 
-        /**
-         * 重置所有狀態與介面
-         */
+
+
+        function undoLastCapture() {
+          if (manualEvidenceQueue.length > 0) {
+            manualEvidenceQueue.pop();
+            updateEvidenceQueueUI();
+          }
+        }
+
+        function closeVideoStudio() {
+          activeStudioVideoBlob = null;
+          activeStudioVideoElement = null;
+          manualEvidenceQueue = [];
+          forensicStudio.classList.add("hidden");
+          evidenceQueueSection.classList.add("hidden");
+          document.getElementById("cardsContainer").classList.remove("hidden");
+          updateEvidenceQueueUI();
+
+          selectedFiles = selectedFiles.filter(f => !f.type.startsWith("video/") && ![".mp4", ".mov", ".webm"].some(ext => f.name.toLowerCase().endsWith(ext)));
+          renderFileListUI();
+
+          if (selectedFiles.length === 0) resetAll();
+          else btnConvert.setAttribute("data-active", "true");
+        }
+
         function resetAll() {
           selectedFiles = [];
           processedImages = [];
+          manualEvidenceQueue = [];
+          activeStudioVideoBlob = null;
+          activeStudioVideoElement = null;
           fileInput.value = "";
 
           fileListContainer.classList.add("hidden");
           fileListContainer.innerHTML = "";
+          emptyFileListHint.classList.remove("hidden");
+          txtFileCount.innerText = "0";
+
+          forensicStudio.classList.add("hidden");
+          evidenceQueueSection.classList.add("hidden");
+          document.getElementById("cardsContainer").classList.remove("hidden");
+
           progressArea.classList.add("hidden");
           statusText.innerText = "";
           progressBar.style.width = "0%";
@@ -737,79 +771,319 @@
           btnConvert.removeAttribute("data-active");
           btnClear.removeAttribute("data-active");
 
-          btnReconvert.classList.add("hidden");
-          btnConvert.classList.remove("hidden");
-          btnConvert.innerHTML =
-            '<span><i class="fa-solid fa-rocket"></i> 開始轉檔</span>';
-
-          // 移除動態生成的下載按鈕
-          const dynamicButtons = ["btnExportExcel", "btnDownloadZip", "btnDownloadIndividual", "downloadSection", "shareSection"];
-          dynamicButtons.forEach((id) => {
+          updateEvidenceQueueUI();
+          ["btnExportExcel", "btnDownloadZip", "btnDownloadIndividual", "downloadSection"].forEach((id) => {
             const el = document.getElementById(id);
             if (el) el.remove();
           });
         }
 
-        /**
-         * 處理檔案選取更新
-         * @param {FileList} files
-         */
-        function handleFilesUpdate(files) {
-          // 過濾支援的圖片格式
+        async function handleFilesUpdate(files) {
           const validFiles = Array.from(files).filter((file) => {
-            const extension = file.name
-              .slice(file.name.lastIndexOf("."))
-              .toLowerCase();
-            return (
-              CONFIG_MANAGER.SUPPORTED_TYPES.includes(file.type) ||
-              CONFIG_MANAGER.SUPPORTED_EXTENSIONS.includes(extension)
-            );
+            const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
+            return CONFIG_MANAGER.SUPPORTED_TYPES.includes(file.type) || CONFIG_MANAGER.SUPPORTED_EXTENSIONS.includes(ext);
           });
 
           if (validFiles.length === 0) {
-            alert(
-              "❌ 不支援的檔案格式！請上傳圖片 (JPG, HEIC, PNG, WebP)、影片 (MP4, MOV) 或 PDF 檔案。",
-            );
+            alert("❌ 不支援的檔案格式！請上傳 MP4, MOV, JPG, PNG, HEIC 或 PDF。");
             return;
           }
 
           selectedFiles = validFiles;
+          renderFileListUI();
 
-          // 更新檔案清單介面
-          fileListContainer.classList.remove("hidden");
-          fileListContainer.innerHTML = selectedFiles
-            .map(
-              (file) => `
-                        <div class="file-item flex justify-between text-[13px] py-1.5 border-b border-[#f0f0f0] text-[#555] last:border-b-0">
-                            <span>${file.name}</span>
-                            <span>${(file.size / 1024).toFixed(1)} KB</span>
-                        </div>
-                    `,
-            )
-            .join("");
+          const videoFile = selectedFiles.find(f => 
+            f.type.startsWith("video/") || [".mp4", ".mov", ".webm"].some(ext => f.name.toLowerCase().endsWith(ext))
+          );
 
-          btnConvert.setAttribute("data-active", "true");
-          btnClear.setAttribute("data-active", "true");
-          btnReconvert.classList.add("hidden");
-          btnConvert.classList.remove("hidden");
-          progressArea.classList.add("hidden");
-
-          // 清除舊有的下載按鈕
-          ["btnExportExcel", "btnDownloadZip", "btnDownloadIndividual"].forEach((id) => {
-            const el = document.getElementById(id);
-            if (el) el.remove();
-          });
+          if (videoFile) {
+            btnConvert.removeAttribute("data-active");
+            document.getElementById("cardsContainer").classList.add("hidden");
+            forensicStudio.classList.remove("hidden");
+            evidenceQueueSection.classList.remove("hidden");
+            activeStudioVideoBlob = videoFile;
+            await setupForensicStudioPreview(videoFile);
+          } else {
+            document.getElementById("cardsContainer").classList.remove("hidden");
+            forensicStudio.classList.add("hidden");
+            evidenceQueueSection.classList.add("hidden");
+            btnConvert.setAttribute("data-active", "true");
+          }
         }
 
-        /**
-         * 開始轉換流程
-         */
+        function renderFileListUI() {
+          txtFileCount.innerText = selectedFiles.length;
+
+          if (selectedFiles.length === 0) {
+            fileListContainer.classList.add("hidden");
+            fileListContainer.innerHTML = "";
+            emptyFileListHint.classList.remove("hidden");
+            btnClear.removeAttribute("data-active");
+            return;
+          }
+
+          emptyFileListHint.classList.add("hidden");
+          fileListContainer.classList.remove("hidden");
+          fileListContainer.innerHTML = selectedFiles
+            .map((file, idx) => `
+              <div class="file-item flex justify-between items-center text-[13px] py-1 border-b border-[#f0f0f0] text-[#555] last:border-b-0">
+                <div class="flex items-center gap-2 overflow-hidden mr-2">
+                  <i class="${getFileIconClass(file.name)} text-accent"></i>
+                  <span class="truncate font-medium">${file.name}</span>
+                  <span class="text-[11px] text-slate-400 font-mono">(${(file.size / 1024).toFixed(1)} KB)</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <button onclick="window.app.removeSingleFile(${idx})" class="text-[11px] bg-slate-100 hover:bg-danger hover:text-white text-slate-500 px-2 py-0.5 rounded transition-colors flex items-center gap-1 cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i> 刪除
+                  </button>
+                </div>
+              </div>
+            `)
+            .join("");
+
+          btnClear.setAttribute("data-active", "true");
+        }
+
+        function getFileIconClass(name) {
+          const ext = name.slice(name.lastIndexOf(".")).toLowerCase();
+          if ([".mp4", ".mov", ".webm"].includes(ext)) return "fa-solid fa-file-video";
+          if (ext === ".pdf") return "fa-solid fa-file-pdf";
+          return "fa-solid fa-file-image";
+        }
+
+        function removeSingleFile(idx) {
+          if (idx >= 0 && idx < selectedFiles.length) {
+            const removed = selectedFiles[idx];
+            selectedFiles.splice(idx, 1);
+            
+            if (activeStudioVideoBlob && (removed.name === activeStudioVideoBlob.name)) {
+              closeVideoStudio();
+            } else {
+              renderFileListUI();
+              if (selectedFiles.length === 0) resetAll();
+            }
+          }
+        }
+
+        async function setupForensicStudioPreview(videoFile) {
+          const video = document.createElement("video");
+          video.src = URL.createObjectURL(videoFile);
+          video.muted = true;
+          video.playsInline = true;
+
+          await new Promise((res) => (video.onloadedmetadata = res));
+          activeStudioVideoElement = video;
+
+          videoStudioCanvas.width = video.videoWidth;
+          videoStudioCanvas.height = video.videoHeight;
+
+          rngVideoTime.max = video.duration;
+          rngVideoTime.value = 0;
+
+          await seekVideoToTime(0);
+        }
+
+        async function seekVideoToTime(targetTime) {
+          if (!activeStudioVideoElement) return;
+          const duration = activeStudioVideoElement.duration;
+          const safeTime = Math.max(0, Math.min(duration, targetTime));
+
+          activeStudioVideoElement.currentTime = safeTime;
+          await new Promise((res) => (activeStudioVideoElement.onseeked = res));
+
+          const ctx = videoStudioCanvas.getContext("2d");
+          ctx.drawImage(activeStudioVideoElement, 0, 0, videoStudioCanvas.width, videoStudioCanvas.height);
+
+          rngVideoTime.value = safeTime;
+          txtCurrentVideoTime.innerText = `${formatTime(safeTime)} / ${formatTime(duration)}`;
+        }
+
+        function stepVideoTime(deltaSec) {
+          if (!activeStudioVideoElement) return;
+          seekVideoToTime(activeStudioVideoElement.currentTime + deltaSec);
+        }
+
+        function formatTime(seconds) {
+          const m = Math.floor(seconds / 60);
+          const s = (seconds % 60).toFixed(1);
+          return `${String(m).padStart(2, "0")}:${String(s).padStart(4, "0")}`;
+        }
+
+        async function captureCurrentStudioFrame() {
+          if (!activeStudioVideoElement) return;
+
+          const w = videoStudioCanvas.width;
+          const h = videoStudioCanvas.height;
+          const headerH = Math.floor(h * (config.headerCropRatio / 100));
+          const footerH = Math.floor(h * (config.footerCropRatio / 100));
+          const cropH = h - headerH - footerH;
+
+          if (cropH <= 50) {
+            alert("❌ 遮罩設定過大，無效裁切區域！");
+            return;
+          }
+
+          const cropCanvas = document.createElement("canvas");
+          cropCanvas.width = w;
+          cropCanvas.height = cropH;
+          const cropCtx = cropCanvas.getContext("2d");
+          cropCtx.imageSmoothingEnabled = true;
+          cropCtx.imageSmoothingQuality = "high";
+
+          cropCtx.drawImage(videoStudioCanvas, 0, headerH, w, cropH, 0, 0, w, cropH);
+
+          applyBackgroundRemoval(cropCtx, w, cropH);
+
+          const mimeType = config.outputFormat || "image/jpeg";
+          const blob = await new Promise((res) => cropCanvas.toBlob(res, mimeType, config.outputQuality));
+          const currentTimeStr = formatTime(activeStudioVideoElement.currentTime);
+          const dataURL = cropCanvas.toDataURL(mimeType, 0.6);
+
+          manualEvidenceQueue.push({
+            id: Date.now(),
+            timeSec: activeStudioVideoElement.currentTime,
+            timeStr: currentTimeStr,
+            blob: blob,
+            dataURL: dataURL,
+            w: w,
+            h: cropH
+          });
+
+          updateLastCapturedReference(cropCanvas, currentTimeStr);
+          updateEvidenceQueueUI();
+        }
+
+        function applyBackgroundRemoval(ctx, width, height) {
+          if (config.fillWhiteBg && config.outputFormat === "image/jpeg") {
+            const tempCanvas = document.createElement("canvas");
+            tempCanvas.width = width;
+            tempCanvas.height = height;
+            const tempCtx = tempCanvas.getContext("2d");
+            tempCtx.fillStyle = "#ffffff";
+            tempCtx.fillRect(0, 0, width, height);
+            tempCtx.drawImage(ctx.canvas, 0, 0);
+            ctx.drawImage(tempCanvas, 0, 0);
+          }
+        }
+
+        // ⚡ ✨ PDF 掃描件細紋與灰黑橫向條紋濾除演算法 (De-streak Filter Algorithm)
+        function removeScanlineStreaks(ctx, width, height) {
+          if (!config.removePdfStreaks) return;
+
+          const imgData = ctx.getImageData(0, 0, width, height);
+          const data = imgData.data;
+
+          // 掃描水平孤立 1~2px 黑線/細紋淨化
+          for (let y = 1; y < height - 1; y++) {
+            for (let x = 0; x < width; x++) {
+              const idx = (y * width + x) * 4;
+              const r = data[idx], g = data[idx + 1], b = data[idx + 2];
+
+              // 檢查當前像素是否偏深灰色/黑細線 (非純文字/紅印)
+              const isDarkStreak = (r < 180 && g < 180 && b < 180);
+
+              if (isDarkStreak) {
+                const topIdx = ((y - 1) * width + x) * 4;
+                const botIdx = ((y + 1) * width + x) * 4;
+
+                const topR = data[topIdx], topG = data[topIdx + 1], topB = data[topIdx + 2];
+                const botR = data[botIdx], botG = data[botIdx + 1], botB = data[botIdx + 2];
+
+                // 若上下兩鄰居像素均為白底或淡底 (亮度 > 220)，說明此處是一條孤立的掃描殘影細線
+                const isTopWhite = (topR > 215 && topG > 215 && topB > 215);
+                const isBotWhite = (botR > 215 && botG > 215 && botB > 215);
+
+                if (isTopWhite && isBotWhite) {
+                  // 自動將該橫紋雜訊平滑歸一為白底
+                  data[idx] = Math.round((topR + botR) / 2);
+                  data[idx + 1] = Math.round((topG + botG) / 2);
+                  data[idx + 2] = Math.round((topB + botB) / 2);
+                }
+              }
+            }
+          }
+
+          ctx.putImageData(imgData, 0, 0);
+        }
+
+        function updateLastCapturedReference(sourceCanvas, timeStr) {
+          noReferenceHint.classList.add("hidden");
+          const w = sourceCanvas.width;
+          const h = sourceCanvas.height;
+
+          lastCapturedCanvas.width = w;
+          lastCapturedCanvas.height = Math.floor(h * 0.3);
+          const ctx = lastCapturedCanvas.getContext("2d");
+
+          ctx.drawImage(sourceCanvas, 0, Math.floor(h * 0.7), w, Math.floor(h * 0.3), 0, 0, w, Math.floor(h * 0.3));
+          txtLastCapturedTime.innerText = `已對照 (${timeStr})`;
+        }
+
+        function getFileExtension(mimeType) {
+          if (mimeType === "image/png") return ".png";
+          if (mimeType === "image/webp") return ".webp";
+          return ".jpg";
+        }
+
+        function updateEvidenceQueueUI() {
+          txtEvidenceCount.innerText = manualEvidenceQueue.length;
+
+          if (manualEvidenceQueue.length === 0) {
+            emptyQueueHint.classList.remove("hidden");
+            btnClearEvidenceQueue.classList.add("hidden");
+            evidenceFilmstrip.innerHTML = "";
+            evidenceFilmstrip.appendChild(emptyQueueHint);
+            processedImages = [];
+            return;
+          }
+
+          emptyQueueHint.classList.add("hidden");
+          btnClearEvidenceQueue.classList.remove("hidden");
+          evidenceFilmstrip.innerHTML = "";
+
+          const customPrefix = txtCustomCasePrefix && txtCustomCasePrefix.value.trim() !== "" ? txtCustomCasePrefix.value.trim() : "";
+          const defaultBase = activeStudioVideoBlob ? activeStudioVideoBlob.name.replace(/\.[^/.]+$/, "") : "證物對話";
+          const baseName = customPrefix ? `${customPrefix}_${defaultBase}` : defaultBase;
+          const ext = getFileExtension(config.outputFormat);
+
+          processedImages = manualEvidenceQueue.map((item, idx) => ({
+            name: `${baseName}_證物_${String(idx + 1).padStart(2, "0")}_(${item.timeStr.replace(":", "m")}s)${ext}`,
+            blob: item.blob,
+            width: item.w,
+            height: item.h
+          }));
+
+          manualEvidenceQueue.forEach((item, idx) => {
+            const card = document.createElement("div");
+            card.className = "flex-none w-[125px] bg-slate-900 border border-slate-700 rounded-lg p-2 flex flex-col items-center gap-1.5 relative group cursor-pointer hover:border-accent transition-all";
+            card.innerHTML = `
+              <div class="text-[9px] font-mono text-accent font-bold">頁 ${idx + 1} (${item.timeStr})</div>
+              <img src="${item.dataURL}" onclick="window.app.openLightbox('${item.dataURL}', ${idx + 1})" class="w-full h-[125px] object-cover rounded border border-slate-800 hover:scale-105 transition-transform" />
+              <button onclick="event.stopPropagation(); window.app.removeEvidenceItem(${item.id})" class="text-[10px] bg-danger/80 hover:bg-danger text-white px-2 py-0.5 rounded w-full flex items-center justify-center gap-1 cursor-pointer">
+                <i class="fa-solid fa-trash"></i> 刪除
+              </button>
+            `;
+            evidenceFilmstrip.appendChild(card);
+          });
+
+          showResultButtons();
+        }
+
+        function openLightbox(dataURL, pageNum) {
+          imgLightboxPreview.src = dataURL;
+          txtLightboxTitle.innerText = `放大檢視：證物頁碼 ${pageNum}`;
+          imageLightboxModal.classList.remove("hidden");
+        }
+
+        function removeEvidenceItem(id) {
+          manualEvidenceQueue = manualEvidenceQueue.filter(item => item.id !== id);
+          updateEvidenceQueueUI();
+        }
+
         async function startConversionProcess() {
           if (selectedFiles.length === 0) return;
 
-          // UI 鎖定
           btnConvert.removeAttribute("data-active");
-          btnReconvert.classList.add("hidden");
           btnClear.removeAttribute("data-active");
           progressArea.classList.remove("hidden");
 
@@ -818,55 +1092,39 @@
 
           for (let i = 0; i < selectedFiles.length; i++) {
             const file = selectedFiles[i];
-            statusText.innerText = `⏳ 檔案處理中 (${i + 1}/${selectedFiles.length})：${file.name}`;
-            progressBar.style.width = `${(i / selectedFiles.length) * 100}%`;
+            statusText.innerText = `⏳ 處理中 (${i + 1}/${selectedFiles.length})：${file.name}`;
+            progressBar.style.width = `${((i + 1) / selectedFiles.length) * 100}%`;
 
             try {
               let results = [];
-              if (file.type.startsWith("video/") || [".mp4", ".mov", ".webm"].some(ext => file.name.toLowerCase().endsWith(ext))) {
-                results = await processVideoFile(file);
-              } else if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) {
+              if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) {
                 results = await processPdfFile(file);
-              } else {
+              } else if (!file.type.startsWith("video/")) {
                 results = await processSingleImage(file);
               }
               processedImages.push(...results);
               successCount++;
             } catch (err) {
-              console.error(`❌ 處理失敗 [${file.name}]:`, err);
+              console.error(`❌ 失敗 [${file.name}]:`, err);
+              alert(`❌ 處理檔案失敗 [${file.name}]: ${err.message}`);
             }
           }
 
-          statusText.innerText = `✅ 轉檔作業完成！共處理 ${successCount} 個檔案，產生 ${processedImages.length} 張圖檔。`;
+          statusText.innerText = `✅ 轉檔完成！共處理 ${successCount} 個檔案。`;
           progressBar.style.width = "100%";
-
-          btnConvert.classList.add("hidden");
-          btnReconvert.classList.remove("hidden");
           btnClear.setAttribute("data-active", "true");
-
           showResultButtons();
         }
 
-        /**
-         * 處理單一圖片轉換與切片
-         */
         async function processSingleImage(file) {
           let currentBlob = file;
 
-          // HEIC 格式前置轉換
-          if (
-            file.name.toLowerCase().endsWith(".heic") ||
-            file.type === "image/heic"
-          ) {
+          if (file.name.toLowerCase().endsWith(".heic") || file.type === "image/heic") {
             try {
-              const heicBlob = await heic2any({
-                blob: file,
-                toType: "image/jpeg",
-                quality: 0.92,
-              });
+              const heicBlob = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.92 });
               currentBlob = Array.isArray(heicBlob) ? heicBlob[0] : heicBlob;
             } catch (e) {
-              throw new Error(`HEIC 轉換失敗：${e.message}`);
+              throw new Error(`HEIC 解碼失敗: ${e.message}`);
             }
           }
 
@@ -874,603 +1132,262 @@
             const img = new Image();
             img.onload = async () => {
               const results = [];
-              const originalW = img.width;
-              const originalH = img.height;
-              const ratio = originalH / originalW;
-
-              const isLongMobile = ratio > config.ratioThreshold; // 是否為長截圖
               const baseName = file.name.replace(/\.[^/.]+$/, "");
+              const ext = getFileExtension(config.outputFormat);
 
-              if (isLongMobile) {
-                // --- 長截圖切片模式 (公分比例運算) ---
-                const targetW = config.targetWidthCM;
-                const targetH = config.targetHeightCM;
-                const overlapCM = config.overlapCM;
-
-                // 核心公式：H_px = W_px * (H_cm / W_cm)
-                const sliceHeightSource = Math.floor(originalW * (targetH / targetW));
-                const overlap = Math.floor(originalW * (overlapCM / targetW));
-                let currentY = 0;
-                let sliceIndex = 1;
-
-                while (currentY < originalH) {
-                  let actualSliceH = sliceHeightSource;
-                  if (currentY + actualSliceH > originalH)
-                    actualSliceH = originalH - currentY;
-
-                  const blob = await generateProcessedBlob(
-                    img,
-                    0,
-                    currentY,
-                    originalW,
-                    actualSliceH,
-                    originalW,
-                    actualSliceH,
-                  );
-
-                  results.push({
-                    name: `${baseName}_${String(sliceIndex).padStart(2, "0")}.jpg`,
-                    blob: blob,
-                    width: originalW,
-                    height: actualSliceH,
-                  });
-
-                  if (currentY + actualSliceH >= originalH) break;
-                  currentY += sliceHeightSource - overlap;
-                  sliceIndex++;
-                }
-              } else {
-                // --- 一般模式 ---
-                const blob = await generateProcessedBlob(
-                  img,
-                  0,
-                  0,
-                  originalW,
-                  originalH,
-                  originalW,
-                  originalH,
-                );
-                results.push({
-                  name: `${baseName}.jpg`,
-                  blob: blob,
-                  width: originalW,
-                  height: originalH,
-                });
-              }
+              const blob = await generateProcessedBlob(img, 0, 0, img.width, img.height, img.width, img.height);
+              results.push({ name: `${baseName}${ext}`, blob: blob, width: img.width, height: img.height });
+              
+              URL.revokeObjectURL(img.src);
               resolve(results);
             };
-            img.onerror = () => reject(new Error("載入圖片發生錯誤"));
+            img.onerror = () => reject(new Error("圖片載入失敗"));
             img.src = URL.createObjectURL(currentBlob);
           });
         }
 
-        /**
-         * 處理影片檔案：自動擷取對話影格
-         */
-        async function processVideoFile(file) {
-          return new Promise((resolve, reject) => {
-            const video = document.createElement("video");
-            const canvas = document.createElement("canvas");
-            const ctx = canvas.getContext("2d", { willReadFrequently: true });
-            const results = [];
-            const url = URL.createObjectURL(file);
-
-            video.src = url;
-            video.muted = true;
-            video.playsInline = true;
-
-            video.onloadedmetadata = async () => {
-              const duration = video.duration;
-              const step = config.videoStep;
-              const threshold = config.videoDelta;
-              
-              const baseName = file.name.replace(/\.[^/.]+$/, "");
-              canvas.width = video.videoWidth;
-              canvas.height = video.videoHeight;
-              
-              const targetWidthPx = video.videoWidth;
-              const targetHeight = video.videoHeight;
-
-              // --- 位移偵測變數 ---
-              let lastStrip = null;
-              let lastImageData = null; 
-              let lastCapturedImageData = null; // 新增：用於比對是否有重複存檔
-              let accumulatorDY = 0;
-              let currentTime = 0;
-              let frameIndex = 1;
-              let stableCount = 0;
-              
-              // 觸發擷取的位移門檻 (像素) = 畫面高度 * (1 - 重疊率)
-              const pageThreshold = video.videoHeight * (1 - config.videoOverlap / 100);
-
-              try {
-                // 初始影格 (0.0s) 必擷取
-                video.currentTime = 0;
-                await new Promise(r => (video.onseeked = r));
-                ctx.drawImage(video, 0, 0);
-                const firstBlob = await captureFrame(canvas, targetWidthPx, targetHeight);
-                results.push(createFrameResult(baseName, frameIndex++, firstBlob, targetWidthPx, targetHeight));
-                lastStrip = getVerticalStrip(ctx, canvas.width, canvas.height);
-                lastImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                lastCapturedImageData = lastImageData; // 紀錄為第一張存檔內容
-
-                currentTime += step;
-
-                while (currentTime <= duration) {
-                  const seekTime = Math.min(currentTime, duration);
-                  video.currentTime = seekTime;
-                  await new Promise(r => (video.onseeked = r));
-
-                  ctx.drawImage(video, 0, 0);
-                  const currentImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                  const currentStrip = getVerticalStrip(ctx, canvas.width, canvas.height, currentImageData);
-                  
-                  // 估算位移 dy
-                  let dy = estimateVerticalShift(lastStrip, currentStrip, canvas.height, threshold);
-                  
-                  // --- 「失蹤補位」機制 ---
-                  // 如果比對誤差太高代表標記跟丟了 (滑太快超過雷達範圍)
-                  if (dy === 0) {
-                    const changed = isFrameChanged(lastImageData, currentImageData, threshold);
-                    if (changed) {
-                      // 補償改為 55%，降低總體張數，同時保持內容連續性
-                      dy = Math.floor(canvas.height * 0.55); 
-                    }
-                  }
-
-                  accumulatorDY += Math.abs(dy);
-                  lastImageData = currentImageData; 
-
-                  let shouldCapture = false;
-
-                  // 條件 A: 累計位移達標 (滿一頁)
-                  if (accumulatorDY >= pageThreshold) {
-                    shouldCapture = true;
-                  } 
-                  // 條件 B: 畫面長時間停止，且位移至少過了一半螢幕 (50%)
-                  // 防止在原地不斷重複擷取高度相似的照片
-                  else if (Math.abs(dy) < 2) {
-                    stableCount++;
-                    if (stableCount >= 2 && accumulatorDY > video.videoHeight * 0.5) {
-                      shouldCapture = true;
-                    }
-                  } else {
-                    stableCount = 0;
-                  }
-
-                  // 執行擷取
-                  if (shouldCapture || seekTime >= duration) {
-                    // --- 智能重複圖攔截 ---
-                    // 與「上一張成功存檔」進行比對，變動率過低 (< 5%) 則跳過
-                    const isDuplicate = !isFrameChanged(lastCapturedImageData, currentImageData, 5);
-                    
-                    if (!isDuplicate || seekTime >= duration) {
-                      const blob = await captureFrame(canvas, targetWidthPx, targetHeight);
-                      results.push(createFrameResult(baseName, frameIndex++, blob, targetWidthPx, targetHeight));
-                      lastCapturedImageData = currentImageData; // 更新最末存檔紀錄
-                      accumulatorDY = 0;
-                    } 
-                    // 冗餘處理：若位移已達標但內容相同，重置部分位移避免陷入卡死重複
-                    else if (accumulatorDY >= pageThreshold) {
-                      accumulatorDY = Math.floor(pageThreshold * 0.3); 
-                    }
-                    stableCount = 0;
-                  }
-
-                  lastStrip = currentStrip;
-
-                  if (currentTime >= duration) break;
-                  currentTime += step;
-                  if (currentTime > duration && currentTime - step < duration) currentTime = duration;
-                  
-                  statusText.innerText = `⏳ 位移偵測分析中 (${Math.round((seekTime/duration)*100)}%)：${file.name}`;
-                }
-                URL.revokeObjectURL(url);
-                resolve(results);
-              } catch (e) {
-                URL.revokeObjectURL(url);
-                reject(e);
+        function parsePageRange(rangeStr, totalPages) {
+          if (!rangeStr || rangeStr.trim().toLowerCase() === "all") {
+            return Array.from({ length: totalPages }, (_, i) => i + 1);
+          }
+          const pages = new Set();
+          const parts = rangeStr.split(",");
+          for (let part of parts) {
+            part = part.trim();
+            if (part.includes("-")) {
+              const [start, end] = part.split("-").map(n => parseInt(n, 10));
+              if (!isNaN(start) && !isNaN(end)) {
+                for (let i = Math.max(1, start); i <= Math.min(totalPages, end); i++) pages.add(i);
               }
-            };
-
-            video.onerror = () => {
-              URL.revokeObjectURL(url);
-              reject(new Error("影片載入失敗"));
-            };
-          });
-        }
-
-        /**
-         * 輔助函式：包裝影格結果物件
-         */
-        function createFrameResult(baseName, index, blob, w, h) {
-          return {
-            name: `${baseName}_page_${String(index).padStart(3, "0")}.jpg`,
-            blob: blob,
-            width: w,
-            height: h,
-          };
-        }
-
-        /**
-         * 輔助函式：執行單一影格擷取
-         */
-        async function captureFrame(canvas, dw, dh) {
-          return await generateProcessedBlobFromCanvas(canvas, dw, dh);
-        }
-
-        /**
-         * 擷取中央垂直條特徵 (用於位移偵測)
-         */
-        function getVerticalStrip(ctx, w, h, existingImageData) {
-          const stripWidth = 16;
-          const x = Math.floor(w / 2 - stripWidth / 2);
-          const imageData = existingImageData || ctx.getImageData(x, 0, stripWidth, h);
-          const data = imageData.data;
-          const strip = new Uint8Array(h);
-          
-          const isFullImage = imageData.width === w;
-
-          for (let y = 0; y < h; y++) {
-            let sum = 0;
-            for (let i = 0; i < stripWidth; i++) {
-              const baseIdx = isFullImage 
-                ? (y * w + (x + i)) * 4 
-                : (y * stripWidth + i) * 4;
-              sum += data[baseIdx] * 0.299 + data[baseIdx+1] * 0.587 + data[baseIdx+2] * 0.114;
-            }
-            strip[y] = sum / stripWidth;
-          }
-          return strip;
-        }
-
-        /**
-         * 估算兩影格間的垂直位移 dy (Sliding Window SAD)
-         */
-        function estimateVerticalShift(oldStrip, newStrip, h, threshold) {
-          let minSAD = Infinity;
-          let bestDY = 0;
-          const searchRange = Math.floor(h * 0.7); 
-          const step = 2;
-
-          for (let dy = -searchRange; dy <= searchRange; dy += step) {
-            let sad = 0;
-            let count = 0;
-            const sampleCount = 60; 
-            const sampleStep = Math.max(1, Math.floor(h / sampleCount));
-
-            for (let y = 0; y < h; y += sampleStep) {
-              const targetY = y + dy;
-              if (targetY >= 0 && targetY < h) {
-                sad += Math.abs(oldStrip[y] - newStrip[targetY]);
-                count++;
-              }
-            }
-            sad /= count;
-            if (sad < minSAD) {
-              minSAD = sad;
-              bestDY = dy;
+            } else {
+              const pageNum = parseInt(part, 10);
+              if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) pages.add(pageNum);
             }
           }
-
-          if (minSAD > 50) return 0;
-          return bestDY;
+          return pages.size > 0 ? Array.from(pages).sort((a, b) => a - b) : Array.from({ length: totalPages }, (_, i) => i + 1);
         }
 
-        /**
-         * 比較兩個影格的差異百分比 (用於失蹤補位偵測)
-         */
-        function isFrameChanged(prev, curr, threshold) {
-          if (!prev || !curr) return false;
-          const p = prev.data;
-          const c = curr.data;
-          let diff = 0;
-          const sampleStep = 32; 
-          let count = 0;
-
-          for (let i = 0; i < p.length; i += sampleStep) {
-            const pLuma = p[i] * 0.299 + p[i+1] * 0.587 + p[i+2] * 0.114;
-            const cLuma = c[i] * 0.299 + c[i+1] * 0.587 + c[i+2] * 0.114;
-            if (Math.abs(pLuma - cLuma) > 30) {
-              diff++;
-            }
-            count++;
-          }
-          const changeRatio = (diff / count) * 100;
-          return changeRatio > threshold;
-        }
-
-        /**
-         * 直接從 Canvas 生成處理後的 Blob
-         */
-        async function generateProcessedBlobFromCanvas(sourceCanvas, dw, dh) {
-          const outCanvas = document.createElement("canvas");
-          outCanvas.width = dw;
-          outCanvas.height = dh;
-          const outCtx = outCanvas.getContext("2d");
-
-          outCtx.imageSmoothingEnabled = true;
-          outCtx.imageSmoothingQuality = "high";
-          outCtx.drawImage(sourceCanvas, 0, 0, sourceCanvas.width, sourceCanvas.height, 0, 0, dw, dh);
-
-          return new Promise(resolve => {
-            outCanvas.toBlob(resolve, "image/jpeg", config.outputQuality);
-          });
-        }
-
-        /**
-         * 處理 PDF 檔案：逐頁轉為圖片
-         */
+        // ⚡ PDF 轉檔：高清渲染 + 淨化掃描細紋
         async function processPdfFile(file) {
-          return new Promise(async (resolve, reject) => {
-            try {
-              const arrayBuffer = await file.arrayBuffer();
-              const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-              const results = [];
-              const baseName = file.name.replace(/\.[^/.]+$/, "");
-              
-              for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                statusText.innerText = `⏳ PDF 頁面渲染中 (${pageNum}/${pdf.numPages})：${file.name}`;
-                progressBar.style.width = `${(pageNum / pdf.numPages) * 100}%`;
-                
-                const page = await pdf.getPage(pageNum);
-                const viewport = page.getViewport({ scale: config.pdfScale });
-                
-                const canvas = document.createElement("canvas");
-                const context = canvas.getContext("2d");
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
+          const arrayBuffer = await file.arrayBuffer();
+          let password = null;
+          let pdf = null;
 
-                const renderContext = {
-                  canvasContext: context,
-                  viewport: viewport
-                };
-                
-                await page.render(renderContext).promise;
-                
-                // 將渲染好的 Canvas 轉為 Blob (JPEG)
-                const blob = await new Promise(res => canvas.toBlob(res, "image/jpeg", config.outputQuality));
-                
-                results.push({
-                  name: `${baseName}_page_${String(pageNum).padStart(3, "0")}.jpg`,
-                  blob: blob,
-                  width: viewport.width,
-                  height: viewport.height
-                });
-              }
-              resolve(results);
+          while (true) {
+            try {
+              pdf = await pdfjsLib.getDocument({ data: arrayBuffer, password: password }).promise;
+              break;
             } catch (e) {
-              reject(e);
+              if (e.name === "PasswordException") {
+                password = await promptPdfPasswordModal();
+                if (password === null) throw new Error("使用者取消密碼解密");
+              } else {
+                throw e;
+              }
             }
+          }
+
+          const results = [];
+          const baseName = file.name.replace(/\.[^/.]+$/, "");
+          const targetPages = parsePageRange(config.pdfPages, pdf.numPages);
+          const rotationAngle = parseInt(config.pdfRotation || 0, 10);
+          const ext = getFileExtension(config.outputFormat);
+
+          for (let i = 0; i < targetPages.length; i++) {
+            const pageNum = targetPages[i];
+            statusText.innerText = `⏳ PDF 淨化渲染中 (${i + 1}/${targetPages.length} 頁)：${file.name}`;
+            progressBar.style.width = `${((i + 1) / targetPages.length) * 100}%`;
+
+            let page = null;
+            try {
+              page = await pdf.getPage(pageNum);
+              const viewport = page.getViewport({ scale: config.pdfScale, rotation: rotationAngle });
+
+              const canvas = document.createElement("canvas");
+              const context = canvas.getContext("2d");
+              canvas.height = viewport.height;
+              canvas.width = viewport.width;
+
+              // 關閉 Smoothing 插值避免產生網點與黑條紋殘影
+              context.imageSmoothingEnabled = false;
+
+              await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+              // ⚡ 濾除公文 PDF 掃描件的黑色細紋與橫向殘影
+              removeScanlineStreaks(context, viewport.width, viewport.height);
+
+              applyBackgroundRemoval(context, viewport.width, viewport.height);
+
+              const mimeType = config.outputFormat || "image/jpeg";
+              const blob = await new Promise((res) => canvas.toBlob(res, mimeType, config.outputQuality));
+
+              results.push({
+                name: `${baseName}_page_${String(pageNum).padStart(3, "0")}${ext}`,
+                blob: blob,
+                width: viewport.width,
+                height: viewport.height,
+              });
+            } finally {
+              if (page && typeof page.cleanup === "function") page.cleanup();
+            }
+          }
+
+          if (pdf && typeof pdf.destroy === "function") pdf.destroy();
+          return results;
+        }
+
+        function promptPdfPasswordModal() {
+          return new Promise((resolve) => {
+            txtPdfPassword.value = "";
+            pdfPasswordModal.classList.remove("hidden");
+            txtPdfPassword.focus();
+            pendingPdfResolve = resolve;
           });
         }
 
-        /**
-         * 生成經過處理的 Blob
-         */
         function generateProcessedBlob(img, sx, sy, sw, sh, dw, dh) {
           return new Promise((resolve) => {
             const canvas = document.createElement("canvas");
             canvas.width = dw;
             canvas.height = dh;
             const ctx = canvas.getContext("2d");
-
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = "high";
-            ctx.drawImage(img, sx, sy, sw, sh, 0, 0, dw, dh);
 
-            canvas.toBlob(resolve, "image/jpeg", config.outputQuality);
+            ctx.drawImage(img, sx, sy, sw, sh, 0, 0, dw, dh);
+            applyBackgroundRemoval(ctx, dw, dh);
+
+            const mimeType = config.outputFormat || "image/jpeg";
+            canvas.toBlob(resolve, mimeType, config.outputQuality);
           });
         }
 
-
-
-
-        /**
-         * 顯示下載與分享按鈕組
-         */
         function showResultButtons() {
-          const btnGroup = document.querySelector(".btn-group");
           if (document.getElementById("btnDownloadIndividual")) return;
 
-          // 1. 下載區容器
           const downloadSection = document.createElement("div");
           downloadSection.id = "downloadSection";
-          downloadSection.className = "flex flex-col md:flex-row gap-4 w-full mt-8";
-          
-          // 按鈕 1: 個別下載
+          downloadSection.className = "flex flex-col sm:flex-row gap-3 w-full mt-4";
+
           const btnIndividual = document.createElement("button");
           btnIndividual.id = "btnDownloadIndividual";
-          btnIndividual.className = "btn bg-success text-white hover:bg-[#219150] border-none py-3.5 px-5 rounded-xl text-[15px] font-semibold cursor-pointer transition-all duration-200 flex-1 flex items-center justify-center gap-2 shadow-sm hover:shadow-md";
-          btnIndividual.innerHTML = '<span><i class="fa-solid fa-images"></i> 下載全部圖片</span>';
+          btnIndividual.className = "btn bg-[#27ae60] text-white hover:bg-[#219150] border-none py-3.5 px-4 rounded-xl text-sm font-bold cursor-pointer transition-all duration-200 flex-1 flex items-center justify-center gap-2 shadow-sm hover:shadow-md";
+          btnIndividual.innerHTML = '<span><i class="fa-solid fa-images"></i> 下載全部證物圖檔</span>';
           btnIndividual.onclick = executeIndividualDownload;
           downloadSection.appendChild(btnIndividual);
 
-          // 按鈕 2: ZIP 下載
           const btnZip = document.createElement("button");
           btnZip.id = "btnDownloadZip";
-          btnZip.className = "btn bg-primary text-white hover:bg-[#1a252f] border-none py-3.5 px-5 rounded-xl text-[15px] font-semibold cursor-pointer transition-all duration-200 flex-[0.7] flex items-center justify-center gap-2 opacity-90 hover:opacity-100 shadow-sm hover:shadow-md";
-          btnZip.innerHTML = '<span><i class="fa-solid fa-file-zipper"></i> 下載 ZIP</span>';
+          btnZip.className = "btn bg-primary text-white hover:bg-[#1a252f] border-none py-3.5 px-4 rounded-xl text-sm font-bold cursor-pointer transition-all duration-200 flex-[0.7] flex items-center justify-center gap-2 opacity-90 hover:opacity-100 shadow-sm hover:shadow-md";
+          btnZip.innerHTML = '<span><i class="fa-solid fa-file-zipper"></i> 下載打包 ZIP</span>';
           btnZip.onclick = executeZipDownload;
           downloadSection.appendChild(btnZip);
 
-          btnGroup.parentNode.insertBefore(downloadSection, btnGroup.nextSibling);
+          progressArea.parentNode.insertBefore(downloadSection, progressArea.nextSibling);
         }
 
-        /**
-         * 執行個別檔案下載 (不壓縮)
-         */
         async function executeIndividualDownload() {
-          if (processedImages.length === 0) return;
-
+          if (processedImages.length === 0) { alert("尚未擷取任何證物！"); return; }
           const total = processedImages.length;
-          if (total > 10) {
-            const proceed = confirm(`即將下載 ${total} 張圖片，您的瀏覽器可能會彈出多個下載視窗或請求權限。確定要繼續嗎？`);
-            if (!proceed) return;
-          }
 
-          statusText.innerText = "⏳ 正在啟動批次下載...";
-          
+          statusText.innerText = "⏳ 正在啟動下載...";
           for (let i = 0; i < processedImages.length; i++) {
             const img = processedImages[i];
             if (!img.blob) continue;
 
-            statusText.innerText = `⏳ 正在存檔 (${i + 1}/${total})：${img.name}`;
-            
             const url = URL.createObjectURL(img.blob);
             const a = document.createElement("a");
             a.href = url;
             a.download = img.name;
             document.body.appendChild(a);
             a.click();
-            
-            // 稍作延遲，避免瀏覽器下載佇列阻塞或觸發安全機制
-            await new Promise(resolve => setTimeout(resolve, 200));
-            
+
+            await new Promise((r) => setTimeout(r, 200));
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
           }
-
-          statusText.innerText = `✅ 已啟動 ${total} 個檔案下載。`;
+          statusText.innerText = `✅ 已啟動 ${total} 個證物圖檔下載。`;
         }
 
-        /**
-         * 執行 ZIP 封裝與下載
-         */
         async function executeZipDownload() {
-          if (processedImages.length === 0) return;
-
-          statusText.innerText = "⏳ 正在產生壓縮包 (ZIP)...";
+          if (processedImages.length === 0) { alert("尚未擷取任何證物！"); return; }
+          statusText.innerText = "⏳ 正在打包司法證物 ZIP...";
           const zip = new JSZip();
 
-          processedImages.forEach((img) => {
-            if (img.blob) zip.file(img.name, img.blob);
+          let manifestText = `🚔 司法數位鑑識對話截圖與圖檔清單\n產出時間：${new Date().toLocaleString()}\n共計檔數：${processedImages.length} 頁\n\n`;
+
+          processedImages.forEach((img, idx) => {
+            if (img.blob) {
+              zip.file(img.name, img.blob);
+              manifestText += `【檔數 ${idx + 1}】 檔名：${img.name} | 尺寸：${img.width}x${img.height}\n`;
+            }
           });
+
+          zip.file("司法證物清單對照表.txt", manifestText);
 
           try {
             const content = await zip.generateAsync({ type: "blob" });
-            const timeRef = new Date()
-              .toISOString()
-              .replace(/[-:T]/g, "")
-              .slice(0, 12);
-
-            if (typeof saveAs !== "undefined") {
-              saveAs(content, `影像轉檔包_${timeRef}.zip`);
-            } else {
-              const url = URL.createObjectURL(content);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = `影像轉檔包_${timeRef}.zip`;
-              a.click();
-              URL.revokeObjectURL(url);
-            }
-            statusText.innerText = "✅ 下載已開始";
+            const timeRef = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 12);
+            saveAs(content, `司法對話證物包_${timeRef}.zip`);
+            statusText.innerText = "✅ 證物包 ZIP 下載成功";
           } catch (e) {
-            console.error("❌ ZIP 打包失敗:", e);
+            console.error("❌ ZIP 失敗:", e);
             statusText.innerText = "❌ 打包失敗，請重試";
           }
         }
 
-        /**
-         * 同步配置資料至進階面板 UI
-         */
         function syncConfigToUI() {
+          segmentedBtns.forEach((btn) => {
+            const fmt = btn.getAttribute("data-format");
+            if (fmt === config.outputFormat) {
+              btn.setAttribute("data-active", "true");
+            } else {
+              btn.setAttribute("data-active", "false");
+            }
+          });
+
           const mapping = {
-            "cfg-overlap-cm": "overlapCM",
-            "cfg-width-cm": "targetWidthCM",
-            "cfg-height-cm": "targetHeightCM",
-            "cfg-threshold": "ratioThreshold",
             "cfg-quality": "outputQuality",
-            "cfg-video-delta": "videoDelta",
-            "cfg-video-step": "videoStep",
-            "cfg-video-overlap": "videoOverlap",
+            "cfg-pdf-pages": "pdfPages",
+            "cfg-pdf-rotation": "pdfRotation",
             "cfg-pdf-scale": "pdfScale",
+            "cfg-bg-tolerance": "bgTolerance",
           };
 
           for (let domId in mapping) {
             const el = document.getElementById(domId);
             const display = document.getElementById(domId + "-val");
             const key = mapping[domId];
-
             if (el) {
               el.value = config[key];
               if (display) display.innerText = config[key];
-
-              el.oninput = (e) => {
-                let val = parseFloat(e.target.value);
+              el.onchange = el.oninput = (e) => {
+                let val = e.target.value;
+                if (el.type === "range" || el.type === "number") val = parseFloat(val);
                 config[key] = val;
                 saveUserPreferences();
-                if (display) display.innerText = val.toFixed(val % 1 === 0 ? 0 : 1);
+                if (display) display.innerText = val;
               };
             }
           }
 
-          initSidePanelLogic();
-        }
-
-        /**
-         * 快速設定尺寸
-         */
-        function setQuickSize(w, h, overlap) {
-          config.targetWidthCM = w;
-          config.targetHeightCM = h;
-          config.overlapCM = overlap;
-          saveUserPreferences();
-          syncConfigToUI();
-        }
-
-        /**
-         * 初始化側邊面板 (抽屜) 互動邏輯
-         */
-        function initSidePanelLogic() {
-          const btnToggle = document.getElementById("btnToggleConfig");
-          const btnClose = document.getElementById("btnCloseConfig");
-          const panel = document.getElementById("configPanel");
-          const overlay = document.getElementById("configOverlay");
-          const btnReset = document.getElementById("btnResetConfig");
-
-          const setDrawerState = (isOpen) => {
-            if (isOpen) {
-              overlay.classList.remove("hidden");
-              void overlay.offsetWidth; // 強制重繪以觸發 CSS 過渡動畫
-              overlay.classList.add("opacity-100");
-              panel.setAttribute("data-open", "true");
-              document.body.style.overflow = "hidden";
-            } else {
-              overlay.classList.remove("opacity-100");
-              panel.removeAttribute("data-open");
-              document.body.style.overflow = "";
-              setTimeout(() => {
-                if (!panel.hasAttribute("data-open"))
-                  overlay.classList.add("hidden");
-              }, 300);
-            }
-          };
-
-          if (btnToggle)
-            btnToggle.onclick = (e) => (
-              e.preventDefault(),
-              setDrawerState(true)
-            );
-          if (btnClose) btnClose.onclick = () => setDrawerState(false);
-          if (overlay) overlay.onclick = () => setDrawerState(false);
-
-          if (btnReset) {
-            btnReset.onclick = () => {
-              if (confirm("恢復預設設定值？")) {
-                config = { ...CONFIG_MANAGER.DEFAULT_CONFIG };
-                saveUserPreferences();
-                syncConfigToUI();
-              }
+          if (cfgFillWhite) {
+            cfgFillWhite.checked = config.fillWhiteBg;
+            cfgFillWhite.onchange = (e) => {
+              config.fillWhiteBg = e.target.checked;
+              saveUserPreferences();
             };
+          }
+
+          if (cfgRemovePdfStreaks) {
+            cfgRemovePdfStreaks.checked = config.removePdfStreaks;
           }
         }
 
-        return { init, setQuickSize };
+        return { init, removeEvidenceItem, removeSingleFile, openLightbox };
       })();
 
       window.app = app;
-
       document.addEventListener("DOMContentLoaded", app.init);
     </script>
   </body>
