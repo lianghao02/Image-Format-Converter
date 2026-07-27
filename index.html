@@ -134,14 +134,14 @@
               點擊上傳 或 拖放影片 / 圖片 / PDF至此
             </div>
             <div class="upload-subtext text-[12px] text-[#a0aec0] mt-1">
-              支援 MP4, MOV, WebM, JPG, PNG, HEIC, PDF (含掃描件細紋濾除)
+              支援 MP4, MOV, WebM, JPG, PNG, HEIC, SVG, PDF (含掃描件細紋濾除)
             </div>
           </div>
           <input
             type="file"
             id="fileInput"
             multiple
-            accept="image/*, video/*, .heic, application/pdf"
+            accept="image/*, video/*, .heic, .svg, image/svg+xml, application/pdf"
             class="hidden"
           />
 
@@ -454,11 +454,11 @@
           removePdfStreaks: true, // ⚡ 預設開啟 PDF 細紋濾除器
         },
         SUPPORTED_TYPES: [
-          "image/jpeg", "image/png", "image/webp", "image/heic", "image/bmp",
+          "image/jpeg", "image/png", "image/webp", "image/heic", "image/bmp", "image/svg+xml",
           "video/mp4", "video/webm", "video/quicktime", "application/pdf",
         ],
         SUPPORTED_EXTENSIONS: [
-          ".jpg", ".jpeg", ".png", ".webp", ".heic", ".bmp",
+          ".jpg", ".jpeg", ".png", ".webp", ".heic", ".bmp", ".svg",
           ".mp4", ".mov", ".webm", ".pdf",
         ],
       };
@@ -848,6 +848,7 @@
           const ext = name.slice(name.lastIndexOf(".")).toLowerCase();
           if ([".mp4", ".mov", ".webm"].includes(ext)) return "fa-solid fa-file-video";
           if (ext === ".pdf") return "fa-solid fa-file-pdf";
+          if (ext === ".svg") return "fa-solid fa-bezier-curve text-orange-500";
           return "fa-solid fa-file-image";
         }
 
@@ -1117,6 +1118,10 @@
         }
 
         async function processSingleImage(file) {
+          if (file.name.toLowerCase().endsWith(".svg") || file.type === "image/svg+xml") {
+            return processSvgImage(file);
+          }
+
           let currentBlob = file;
 
           if (file.name.toLowerCase().endsWith(".heic") || file.type === "image/heic") {
@@ -1135,14 +1140,77 @@
               const baseName = file.name.replace(/\.[^/.]+$/, "");
               const ext = getFileExtension(config.outputFormat);
 
-              const blob = await generateProcessedBlob(img, 0, 0, img.width, img.height, img.width, img.height);
-              results.push({ name: `${baseName}${ext}`, blob: blob, width: img.width, height: img.height });
+              const drawW = img.naturalWidth || img.width || 1024;
+              const drawH = img.naturalHeight || img.height || 1024;
+
+              const blob = await generateProcessedBlob(img, 0, 0, drawW, drawH, drawW, drawH);
+              results.push({ name: `${baseName}${ext}`, blob: blob, width: drawW, height: drawH });
               
               URL.revokeObjectURL(img.src);
               resolve(results);
             };
-            img.onerror = () => reject(new Error("圖片載入失敗"));
+            img.onerror = () => reject(new Error("圖片載入失敗，圖檔可能損壞。"));
             img.src = URL.createObjectURL(currentBlob);
+          });
+        }
+
+        // ⚡ 獨家高解析度 SVG 向量超採樣解碼演算法
+        async function processSvgImage(file) {
+          const svgText = await file.text();
+          const parser = new DOMParser();
+          const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
+          const svgEl = svgDoc.querySelector("svg");
+
+          if (!svgEl) {
+            throw new Error("無法解析 SVG XML 結構");
+          }
+
+          // 1. 解析原始真實點陣比例與 ViewBox
+          let origW = 800;
+          let origH = 1200;
+
+          const viewBox = svgEl.getAttribute("viewBox");
+          if (viewBox) {
+            const vbParts = viewBox.trim().split(/[\s,]+/).map(Number);
+            if (vbParts.length === 4 && vbParts[2] > 0 && vbParts[3] > 0) {
+              origW = vbParts[2];
+              origH = vbParts[3];
+            }
+          } else {
+            const attrW = parseFloat(svgEl.getAttribute("width"));
+            const attrH = parseFloat(svgEl.getAttribute("height"));
+            if (!isNaN(attrW) && attrW > 0) origW = attrW;
+            if (!isNaN(attrH) && attrH > 0) origH = attrH;
+          }
+
+          // 2. 超採樣高解析度渲染 (設定最小像素寬度為 2000px，確保 300DPI 銳利度)
+          const minTargetW = 2000;
+          const scale = Math.max(2.0, minTargetW / origW);
+          const targetW = Math.round(origW * scale);
+          const targetH = Math.round(origH * scale);
+
+          // 3. 重寫 SVG 標籤屬性 (確保 Image 載入時擁有絕對高像素長寬)
+          if (!viewBox) {
+            svgEl.setAttribute("viewBox", `0 0 ${origW} ${origH}`);
+          }
+          svgEl.setAttribute("width", targetW);
+          svgEl.setAttribute("height", targetH);
+
+          // 4. 序列化並編碼為 Data URL
+          const serialized = new XMLSerializer().serializeToString(svgDoc);
+          const encodedSvg = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(serialized);
+
+          return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = async () => {
+              const baseName = file.name.replace(/\.[^/.]+$/, "");
+              const ext = getFileExtension(config.outputFormat);
+
+              const blob = await generateProcessedBlob(img, 0, 0, targetW, targetH, targetW, targetH);
+              resolve([{ name: `${baseName}${ext}`, blob: blob, width: targetW, height: targetH }]);
+            };
+            img.onerror = () => reject(new Error("SVG 渲染失敗，圖檔結構可能不相容。"));
+            img.src = encodedSvg;
           });
         }
 
