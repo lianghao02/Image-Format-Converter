@@ -90,6 +90,25 @@
         background-size: 16px 16px;
         background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
       }
+      #workspaceGrid[data-mode="video"] #btnConvert {
+        display: none;
+      }
+      #workspaceGrid[data-mode="video"] #btnClear {
+        flex: 1;
+      }
+      #workspaceGrid[data-mode="video"] #modeNotice {
+        background: #eff6ff;
+        border-color: #93c5fd;
+        color: #1d4ed8;
+      }
+      @media (min-width: 1024px) {
+        #workspaceGrid[data-mode="video"] #intakePanel {
+          grid-column: span 4 / span 4;
+        }
+        #workspaceGrid[data-mode="video"] #workbenchPanel {
+          grid-column: span 8 / span 8;
+        }
+      }
     </style>
   </head>
 
@@ -114,11 +133,17 @@
         </div>
       </div>
 
+      <div id="modeNotice" class="mb-5 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-600 transition-colors">
+        <i id="modeNoticeIcon" class="fa-solid fa-images text-accent"></i>
+        <span id="modeNoticeTitle" class="font-bold text-slate-800">圖片／PDF 轉檔模式</span>
+        <span id="modeNoticeDetail" class="text-slate-500">選擇輸出格式與處理參數後，開始批次轉檔。</span>
+      </div>
+
       <!-- ⚡ 左右雙欄大氣工作台 Layout -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 text-left items-start">
+      <div id="workspaceGrid" data-mode="convert" class="grid grid-cols-1 lg:grid-cols-12 gap-6 text-left items-start">
         
         <!-- ==================== 左欄：檔案採集與名單管理區 (5 Cols / ~42%) ==================== -->
-        <div class="lg:col-span-5 flex flex-col gap-5">
+        <div id="intakePanel" class="lg:col-span-5 flex flex-col gap-5">
           
           <!-- 上傳區 -->
           <div
@@ -191,7 +216,7 @@
         </div>
 
         <!-- ==================== 右欄：參數控制與司法鑑識工作室 (7 Cols / ~58%) ==================== -->
-        <div class="lg:col-span-7 flex flex-col gap-5">
+        <div id="workbenchPanel" class="lg:col-span-7 flex flex-col gap-5">
           
           <!-- ⚙️ 圖片與 PDF 進階控制面板 -->
           <div id="cardsContainer" class="flex flex-col gap-4 transition-all duration-300">
@@ -799,6 +824,7 @@
           forensicStudio.classList.add("hidden");
           evidenceQueueSection.classList.add("hidden");
           document.getElementById("cardsContainer").classList.remove("hidden");
+          setOperationMode("convert");
           updateEvidenceQueueUI();
 
           selectedFiles = selectedFiles.filter(f => !f.type.startsWith("video/") && ![".mp4", ".mov", ".webm"].some(ext => f.name.toLowerCase().endsWith(ext)));
@@ -826,6 +852,7 @@
           forensicStudio.classList.add("hidden");
           evidenceQueueSection.classList.add("hidden");
           document.getElementById("cardsContainer").classList.remove("hidden");
+          setOperationMode("convert");
 
           progressArea.classList.add("hidden");
           statusText.innerText = "";
@@ -860,6 +887,7 @@
           );
 
           if (videoFile) {
+            setOperationMode("video");
             btnConvert.removeAttribute("data-active");
             document.getElementById("cardsContainer").classList.add("hidden");
             forensicStudio.classList.remove("hidden");
@@ -872,11 +900,29 @@
               closeVideoStudio();
             }
           } else {
+            setOperationMode("convert");
             document.getElementById("cardsContainer").classList.remove("hidden");
             forensicStudio.classList.add("hidden");
             evidenceQueueSection.classList.add("hidden");
             btnConvert.setAttribute("data-active", "true");
           }
+        }
+
+        function setOperationMode(mode) {
+          const isVideoMode = mode === "video";
+          const workspaceGrid = document.getElementById("workspaceGrid");
+          const modeNoticeTitle = document.getElementById("modeNoticeTitle");
+          const modeNoticeDetail = document.getElementById("modeNoticeDetail");
+          const modeNoticeIcon = document.getElementById("modeNoticeIcon");
+
+          workspaceGrid.dataset.mode = isVideoMode ? "video" : "convert";
+          modeNoticeTitle.textContent = isVideoMode ? "影片鑑識模式" : "圖片／PDF 轉檔模式";
+          modeNoticeDetail.textContent = isVideoMode
+            ? "影片已載入；使用右側工作室定位、裁切並擷取證物畫格。"
+            : "選擇輸出格式與處理參數後，開始批次轉檔。";
+          modeNoticeIcon.className = isVideoMode
+            ? "fa-solid fa-film text-accent"
+            : "fa-solid fa-images text-accent";
         }
 
         function renderFileListUI() {
