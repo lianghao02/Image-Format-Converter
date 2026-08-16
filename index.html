@@ -39,12 +39,12 @@
               sans: ["Inter", "Noto Sans TC", "sans-serif"],
             },
             colors: {
-              primary: "#2c3e50",
-              accent: "#3498db",
-              success: "#27ae60",
-              warning: "#e67e22",
-              danger: "#c0392b",
-              bg: "#f4f6f9",
+              primary: "#2B364B",
+              accent: "#526F94",
+              success: "#52745F",
+              warning: "#965A4A",
+              danger: "#B96E72",
+              bg: "#F3F5F8",
               "card-bg": "#ffffff",
             },
           },
@@ -67,22 +67,22 @@
         height: 8px;
       }
       .file-list::-webkit-scrollbar-track, .custom-scroll::-webkit-scrollbar-track {
-        background: #1e293b;
+        background: #E8EDF3;
       }
       .file-list::-webkit-scrollbar-thumb, .custom-scroll::-webkit-scrollbar-thumb {
-        background: #475569;
+        background: #9AAABD;
         border-radius: 4px;
       }
       .file-list::-webkit-scrollbar-thumb:hover, .custom-scroll::-webkit-scrollbar-thumb:hover {
-        background: #64748b;
+        background: #7D8FA3;
       }
       .segmented-btn {
         transition: all 0.2s ease-in-out;
       }
       .segmented-btn[data-active="true"] {
-        background-color: #3498db;
+        background-color: #526F94;
         color: #ffffff;
-        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.4);
+        box-shadow: 0 8px 30px rgba(160, 175, 195, 0.2);
       }
       .checkerboard-bg {
         background-color: #e2e8f0;
@@ -100,6 +100,22 @@
         background: #eff6ff;
         border-color: #93c5fd;
         color: #1d4ed8;
+      }
+      body {
+        background: #F3F5F8 !important;
+        color: #2B364B;
+        font-family: "Microsoft JhengHei", "Segoe UI", system-ui, sans-serif;
+      }
+      .bg-slate-50 { background-color: #EDF2F5 !important; }
+      .border-slate-200, .border-slate-300 { border-color: #C8D6E3 !important; }
+      .focus\:border-accent:focus { border-color: #526F94 !important; box-shadow: 0 0 0 3px rgba(82, 111, 148, .16); }
+      #emptyFileListHint::before, #emptyQueueHint::before {
+        content: "";
+        display: block;
+        width: 38px;
+        height: 38px;
+        margin: 0 auto 8px;
+        background: center / contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M18 22h28v28H18z' fill='%23EDF2F5' stroke='%236B8BB0' stroke-width='3'/%3E%3Cpath d='M25 36h14M32 29v14' stroke='%236E9C83' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E");
       }
       @media (min-width: 1024px) {
         #workspaceGrid[data-mode="video"] #intakePanel {
