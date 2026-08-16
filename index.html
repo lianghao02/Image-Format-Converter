@@ -12,7 +12,7 @@
       content="警用數位鑑識與離線影像轉檔工具，支援 PDF 掃描件細紋與殘影淨化、司法鑑識手動精確選頁工作室。"
     />
     <meta name="author" content="LiangHao Dev" />
-    <title>警用影像格式轉換與司法鑑識工具 | PDF 細紋濾除器 v10.0</title>
+    <title>警用影像格式轉換與司法鑑識工具 | PDF 細紋濾除器 v10.0.1</title>
     <link rel="icon" type="image/png" href="favicon.png" />
 
     <!-- Google Fonts -->
@@ -460,8 +460,8 @@
       </div>
 
       <footer class="mt-8 text-center text-[#7f8c8d] text-sm pt-4 border-t border-[#ecf0f1]">
-        <p>&copy; 2025 警用影像格式轉換與司法鑑識工具 v10.0</p>
-        <p style="text-align: center; font-size: 0.8rem; color: #888; margin-top: 6px; padding-bottom: 10px;">版本號碼：v10.0 (Build 70) | PDF 掃描公文細紋殘影淨化濾除 | 開發者：Chia-Hao</p>
+        <p>&copy; 2025 警用影像格式轉換與司法鑑識工具 v10.0.1</p>
+        <p style="text-align: center; font-size: 0.8rem; color: #888; margin-top: 6px; padding-bottom: 10px;">版本號碼：v10.0.1 (Build 71) | PDF 掃描公文細紋殘影淨化濾除 | 開發者：Chia-Hao</p>
       </footer>
     </div>
 
@@ -528,7 +528,7 @@
         let isCapturingLock = false;
 
         function init() {
-          console.log("✅ PDF 細紋濾除器 v10.0 初始化中...");
+          console.log("✅ PDF 細紋濾除器 v10.0.1 初始化中...");
           loadUserPreferences();
 
           fileInput = document.getElementById("fileInput");
@@ -598,7 +598,7 @@
 
           bindEvents();
           syncConfigToUI();
-          console.log("🚀 PDF 細紋濾除器 v10.0 初始化完成。");
+          console.log("🚀 PDF 細紋濾除器 v10.0.1 初始化完成。");
         }
 
         function loadUserPreferences() {
@@ -691,9 +691,15 @@
               btnCaptureCurrentFrame.classList.add("scale-95", "ring-4", "ring-emerald-400");
               setTimeout(() => btnCaptureCurrentFrame.classList.remove("scale-95", "ring-4", "ring-emerald-400"), 150);
 
-              captureCurrentStudioFrame().finally(() => {
-                setTimeout(() => { isCapturingLock = false; }, 250);
-              });
+              (async () => {
+                try {
+                  await captureCurrentStudioFrame();
+                } catch (err) {
+                  console.error("快照擷取錯誤:", err);
+                } finally {
+                  setTimeout(() => { isCapturingLock = false; }, 250);
+                }
+              })();
             }
           });
 
@@ -726,9 +732,15 @@
             btnCaptureCurrentFrame.onclick = () => {
               if (isCapturingLock) return;
               isCapturingLock = true;
-              captureCurrentStudioFrame().finally(() => {
-                setTimeout(() => { isCapturingLock = false; }, 250);
-              });
+              (async () => {
+                try {
+                  await captureCurrentStudioFrame();
+                } catch (err) {
+                  console.error("快照擷取錯誤:", err);
+                } finally {
+                  setTimeout(() => { isCapturingLock = false; }, 250);
+                }
+              })();
             };
           }
 
@@ -936,21 +948,33 @@
 
         async function setupForensicStudioPreview(videoFile) {
           const video = document.createElement("video");
+          if (activeStudioVideoUrl) {
+            URL.revokeObjectURL(activeStudioVideoUrl);
+            activeStudioVideoUrl = null;
+          }
           activeStudioVideoUrl = URL.createObjectURL(videoFile);
-          video.src = activeStudioVideoUrl;
           video.muted = true;
           video.playsInline = true;
+          video.preload = "metadata";
 
           await new Promise((resolve, reject) => {
-            const timeoutId = setTimeout(() => reject(new Error("影片載入逾時，可能是不支援的編碼或檔案已損毀。")), CONFIG_MANAGER.VIDEO_METADATA_TIMEOUT_MS);
-            video.onloadedmetadata = () => {
+            let timeoutId;
+            const finish = (callback, value) => {
               clearTimeout(timeoutId);
-              resolve();
+              video.removeEventListener("loadedmetadata", onLoadedMetadata);
+              video.removeEventListener("error", onError);
+              callback(value);
             };
-            video.onerror = () => {
-              clearTimeout(timeoutId);
-              reject(new Error("瀏覽器無法解碼此影片。"));
+            const onLoadedMetadata = () => finish(resolve);
+            const onError = () => {
+              const message = video.error ? "瀏覽器無法解碼此影片。" : "影片載入失敗。";
+              finish(reject, new Error(message));
             };
+            timeoutId = setTimeout(() => finish(reject, new Error("影片載入逾時，可能是不支援的編碼或檔案已損毀。")), CONFIG_MANAGER.VIDEO_METADATA_TIMEOUT_MS);
+            video.addEventListener("loadedmetadata", onLoadedMetadata, { once: true });
+            video.addEventListener("error", onError, { once: true });
+            video.src = activeStudioVideoUrl;
+            video.load();
           });
           activeStudioVideoElement = video;
 
@@ -965,17 +989,35 @@
 
         async function seekVideoToTime(targetTime) {
           if (!activeStudioVideoElement) return;
-          const duration = activeStudioVideoElement.duration;
+          const duration = activeStudioVideoElement.duration || 0;
           const safeTime = Math.max(0, Math.min(duration, targetTime));
 
-          activeStudioVideoElement.currentTime = safeTime;
-          await new Promise((res) => (activeStudioVideoElement.onseeked = res));
+          await new Promise((resolve) => {
+            let timeoutId;
+            const onSeeked = () => {
+              clearTimeout(timeoutId);
+              activeStudioVideoElement.removeEventListener("seeked", onSeeked);
+              resolve();
+            };
+            timeoutId = setTimeout(() => {
+              activeStudioVideoElement.removeEventListener("seeked", onSeeked);
+              resolve();
+            }, 1000);
+            activeStudioVideoElement.addEventListener("seeked", onSeeked, { once: true });
+            try {
+              activeStudioVideoElement.currentTime = safeTime;
+            } catch (e) {
+              onSeeked();
+            }
+          });
 
-          const ctx = videoStudioCanvas.getContext("2d");
-          ctx.drawImage(activeStudioVideoElement, 0, 0, videoStudioCanvas.width, videoStudioCanvas.height);
+          if (videoStudioCanvas && activeStudioVideoElement.videoWidth > 0) {
+            const ctx = videoStudioCanvas.getContext("2d");
+            ctx.drawImage(activeStudioVideoElement, 0, 0, videoStudioCanvas.width, videoStudioCanvas.height);
+          }
 
-          rngVideoTime.value = safeTime;
-          txtCurrentVideoTime.innerText = `${formatTime(safeTime)} / ${formatTime(duration)}`;
+          if (rngVideoTime) rngVideoTime.value = safeTime;
+          if (txtCurrentVideoTime) txtCurrentVideoTime.innerText = `${formatTime(safeTime)} / ${formatTime(duration)}`;
         }
 
         function stepVideoTime(deltaSec) {
@@ -1047,39 +1089,48 @@
           }
         }
 
-        // ⚡ ✨ PDF 掃描件細紋與灰黑橫向條紋濾除演算法 (De-streak Filter Algorithm)
+        // ⚡ ✨ PDF 掃描件細紋與灰黑橫向條紋濾除演算法 (De-streak Filter Algorithm + 紅印與文字保護)
         function removeScanlineStreaks(ctx, width, height) {
           if (!config.removePdfStreaks) return;
 
           const imgData = ctx.getImageData(0, 0, width, height);
           const data = imgData.data;
 
-          // 掃描水平孤立 1~2px 黑線/細紋淨化
+          // 掃描水平孤立 1~2px 黑線/細紋淨化 (具備紅印關防與文字筆劃過濾保護)
           for (let y = 1; y < height - 1; y++) {
-            for (let x = 0; x < width; x++) {
+            for (let x = 1; x < width - 1; x++) {
               const idx = (y * width + x) * 4;
               const r = data[idx], g = data[idx + 1], b = data[idx + 2];
 
-              // 檢查當前像素是否偏深灰色/黑細線 (非純文字/紅印)
+              // 1. 🛡️ 紅色印章/公文關防保護：若屬於紅印特徵 (R顯著高於G與B)，嚴禁濾除
+              if (r > g + 25 && r > b + 25 && r > 100) continue;
+
+              // 2. 檢查當前像素是否偏深灰色/黑細線
               const isDarkStreak = (r < 180 && g < 180 && b < 180);
+              if (!isDarkStreak) continue;
 
-              if (isDarkStreak) {
-                const topIdx = ((y - 1) * width + x) * 4;
-                const botIdx = ((y + 1) * width + x) * 4;
+              // 3. 上下鄰居像素檢查
+              const topIdx = ((y - 1) * width + x) * 4;
+              const botIdx = ((y + 1) * width + x) * 4;
+              const topR = data[topIdx], topG = data[topIdx + 1], topB = data[topIdx + 2];
+              const botR = data[botIdx], botG = data[botIdx + 1], botB = data[botIdx + 2];
 
-                const topR = data[topIdx], topG = data[topIdx + 1], topB = data[topIdx + 2];
-                const botR = data[botIdx], botG = data[botIdx + 1], botB = data[botIdx + 2];
+              const isTopWhite = (topR > 215 && topG > 215 && topB > 215);
+              const isBotWhite = (botR > 215 && botG > 215 && botB > 215);
 
-                // 若上下兩鄰居像素均為白底或淡底 (亮度 > 220)，說明此處是一條孤立的掃描殘影細線
-                const isTopWhite = (topR > 215 && topG > 215 && topB > 215);
-                const isBotWhite = (botR > 215 && botG > 215 && botB > 215);
+              if (isTopWhite && isBotWhite) {
+                // 4. 🛡️ 左右鄰居保護：若是連續橫向文字筆劃 (如：一、-、數字號碼筆劃)，左右兩側均為深色，不視為細紋
+                const leftIdx = (y * width + (x - 1)) * 4;
+                const rightIdx = (y * width + (x + 1)) * 4;
+                const leftDark = (data[leftIdx] < 180 && data[leftIdx + 1] < 180 && data[leftIdx + 2] < 180);
+                const rightDark = (data[rightIdx] < 180 && data[rightIdx + 1] < 180 && data[rightIdx + 2] < 180);
 
-                if (isTopWhite && isBotWhite) {
-                  // 自動將該橫紋雜訊平滑歸一為白底
-                  data[idx] = Math.round((topR + botR) / 2);
-                  data[idx + 1] = Math.round((topG + botG) / 2);
-                  data[idx + 2] = Math.round((topB + botB) / 2);
-                }
+                if (leftDark && rightDark) continue;
+
+                // 自動將孤立橫紋雜訊平滑歸一為白底
+                data[idx] = Math.round((topR + botR) / 2);
+                data[idx + 1] = Math.round((topG + botG) / 2);
+                data[idx + 2] = Math.round((topB + botB) / 2);
               }
             }
           }
@@ -1271,23 +1322,32 @@
           }
 
           return new Promise((resolve, reject) => {
+            const objectUrl = URL.createObjectURL(currentBlob);
             const img = new Image();
             img.onload = async () => {
-              const results = [];
-              const baseName = file.name.replace(/\.[^/.]+$/, "");
-              const ext = getFileExtension(config.outputFormat);
+              try {
+                const results = [];
+                const baseName = file.name.replace(/\.[^/.]+$/, "");
+                const ext = getFileExtension(config.outputFormat);
 
-              const drawW = img.naturalWidth || img.width || 1024;
-              const drawH = img.naturalHeight || img.height || 1024;
+                const drawW = img.naturalWidth || img.width || 1024;
+                const drawH = img.naturalHeight || img.height || 1024;
 
-              const blob = await generateProcessedBlob(img, 0, 0, drawW, drawH, drawW, drawH);
-              results.push({ name: `${baseName}${ext}`, blob: blob, width: drawW, height: drawH });
-              
-              URL.revokeObjectURL(img.src);
-              resolve(results);
+                const blob = await generateProcessedBlob(img, 0, 0, drawW, drawH, drawW, drawH);
+                results.push({ name: `${baseName}${ext}`, blob: blob, width: drawW, height: drawH });
+
+                URL.revokeObjectURL(objectUrl);
+                resolve(results);
+              } catch (err) {
+                URL.revokeObjectURL(objectUrl);
+                reject(err);
+              }
             };
-            img.onerror = () => reject(new Error("圖片載入失敗，圖檔可能損壞。"));
-            img.src = URL.createObjectURL(currentBlob);
+            img.onerror = () => {
+              URL.revokeObjectURL(objectUrl);
+              reject(new Error("圖片載入失敗，圖檔可能損壞。"));
+            };
+            img.src = objectUrl;
           });
         }
 
@@ -1360,9 +1420,13 @@
           for (let part of parts) {
             part = part.trim();
             if (part.includes("-")) {
-              const [start, end] = part.split("-").map(n => parseInt(n, 10));
-              if (!isNaN(start) && !isNaN(end)) {
-                for (let i = Math.max(1, start); i <= Math.min(totalPages, end); i++) pages.add(i);
+              const subParts = part.split("-").map(n => parseInt(n.trim(), 10));
+              if (subParts.length === 2 && !isNaN(subParts[0]) && !isNaN(subParts[1])) {
+                const s = Math.max(1, Math.min(subParts[0], subParts[1]));
+                const e = Math.min(totalPages, Math.max(subParts[0], subParts[1]));
+                if (s <= e) {
+                  for (let i = s; i <= e; i++) pages.add(i);
+                }
               }
             } else {
               const pageNum = parseInt(part, 10);
@@ -1430,6 +1494,8 @@
 
               const mimeType = config.outputFormat || "image/jpeg";
               const blob = await new Promise((res) => canvas.toBlob(res, mimeType, config.outputQuality));
+              canvas.width = 0;
+              canvas.height = 0;
 
               results.push({
                 name: `${baseName}_page_${String(pageNum).padStart(3, "0")}${ext}`,
@@ -1469,7 +1535,11 @@
             applyImageEnhancements(ctx, dw, dh);
 
             const mimeType = config.outputFormat || "image/jpeg";
-            canvas.toBlob(resolve, mimeType, config.outputQuality);
+            canvas.toBlob((b) => {
+              canvas.width = 0;
+              canvas.height = 0;
+              resolve(b);
+            }, mimeType, config.outputQuality);
           });
         }
 

@@ -1,15 +1,22 @@
-# 🖼️ 警務影像轉檔與銳化工具箱 Police-Image-Toolkit (v10.0)
+# 🖼️ 警務影像轉檔與銳化工具箱 Police-Image-Toolkit (v10.0.1)
 
-[![Version](https://img.shields.io/badge/version-v10.0-blue.svg)](https://github.com/lianghao02/Police-Image-Toolkit)
+[![Version](https://img.shields.io/badge/version-v10.0.1-blue.svg)](https://github.com/lianghao02/Police-Image-Toolkit)
 [![Canvas](https://img.shields.io/badge/Core-HTML5%20Canvas-orange.svg)](https://w3.org)
 
 ## 🏆 v10.0 里程碑：HEIC/PDF 高清轉檔與警務銳化濾鏡
 
 ## 📖 重大更新摘要 (Summary)
 
-本版本為警務影像處理解決方案之重大里程碑版本，全面整合 HEIC 轉檔、PDF 長圖切片與車牌/人臉強化銳化濾鏡。
+本版本整合 HEIC 轉檔、PDF 頁面輸出、影片快照與影像強化濾鏡，主要處理流程在瀏覽器本機完成。
 
-警務人員在處理民眾提供之 iPhone HEIC 照片或 PDF 監視器截圖時，經常遇到 Windows 預設軟體無法開啟，或畫面模糊無法辨識車牌的瓶頸。本工具透過瀏覽器本機 Canvas 算力與算法濾鏡，能在 **2 秒內** 將 HEIC 免費轉為 JPG，並提供獨家 Unsharp Mask 銳化引擎，無損拋出高清可辨識之關鍵證物影像。
+工具透過 Canvas 與瀏覽器解碼能力輸出可供人工檢視的影像。濾鏡會改變像素，處理後檔案不可取代原始證物；正式使用時應同時保存原檔、處理參數與輸出檔。
+
+## 🛡️ v10.0.1 穩定性補強
+
+- 影片載入逾時、解碼失敗、seek 無回應與快照例外後會解除操作鎖。
+- 圖片 Object URL 與暫用 Canvas 在成功或失敗後釋放。
+- PDF 反向頁碼範圍會正規化並限制於實際頁數。
+- 掃描橫紋濾除增加紅色印章與連續文字筆畫保護。
 
 ## ✨ 重點更新特色
 
