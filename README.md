@@ -1,7 +1,15 @@
-# 🖼️ 警務影像轉檔與銳化工具箱 Police-Image-Toolkit (v10.0.1)
+# 🖼️ 警務影像轉檔與銳化工具箱 Police-Image-Toolkit (v10.0.2)
 
-[![Version](https://img.shields.io/badge/version-v10.0.1-blue.svg)](https://github.com/lianghao02/Police-Image-Toolkit)
+[![Version](https://img.shields.io/badge/version-v10.0.2-blue.svg)](https://github.com/lianghao02/Police-Image-Toolkit)
 [![Canvas](https://img.shields.io/badge/Core-HTML5%20Canvas-orange.svg)](https://w3.org)
+
+## 下載、依賴與執行
+
+- **安裝**：不需 Python 或 Node.js；下載 ZIP、解壓後以新版 Chrome、Edge 或 Firefox 開啟 `index.html`。
+- **功能**：HEIC 轉檔、PDF 頁面輸出、影片快照、影像銳化與掃描線處理；處理在瀏覽器本機執行。
+- **外部依賴**：Tailwind CSS、Google Fonts、Font Awesome、heic2any、JSZip、FileSaver 與 PDF.js 由 CDN 載入，因此首次載入及未快取時需要網路。
+- **打包／部署**：本專案是靜態網站，不需建置；完整部署 Repository 內容即可。若要完全離線，須另將上述第三方函式庫合法下載並改成本機引用。
+- **證物注意**：輸出是衍生檔，應保留原始檔及操作紀錄，不能以濾鏡結果取代原始證物。
 
 ## 🏆 v10.0 里程碑：HEIC/PDF 高清轉檔與警務銳化濾鏡
 
@@ -21,8 +29,8 @@
 ## ✨ 重點更新特色
 
 - 🔄 **HEIC / PDF 免費本機轉檔 (Browser Local Conversion)**：
-  - 100% 於本機前端瀏覽器完成轉檔與切片，圖片絕不安裝或上傳至外部伺服器。
-  - 保證警務資安零外洩，轉檔速度提升 5 倍以上。
+  - 轉檔與切片在本機瀏覽器完成，程式本身不會主動將使用者檔案上傳至專案伺服器。
+  - 第三方程式庫由 CDN 載入；正式環境仍應依機關網路與資安規範使用。
 
 - 🔍 **車牌人臉二值化與 Unsharp 銳化引擎 (Image Sharpening Filter)**：
   - 提供拉普拉斯 (Laplacian) 矩陣與動態二值化對比度調校濾鏡。
