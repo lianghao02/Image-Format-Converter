@@ -1,5 +1,20 @@
 # 變更紀錄 (CHANGELOG)
 
+## 未發布（2026-08-24）
+- **技術架構文件**：補記 v11.0.0 的 C#／.NET 8／WPF 主力架構、`legacy_web/` 歷史定位與 Self-Contained 發行邊界；未變更功能。
+
+## 🚀 v11.0.0 (2026-08-24)
+- **重大架構重構**：全面升級為 Windows 原生 **C# (.NET 8 LTS / WPF)** 桌面應用程式，原純前端網頁版本移至 `legacy_web/` 歷史隔離封存。
+- **單檔免安裝發布**：支援 Self-Contained Single-File 發布，產出單一免安裝執行檔（`PoliceImageToolkit.exe`），無須預裝 .NET Runtime，點擊即開。
+- **手機圖片批次轉檔引擎**：
+  - 多核心並行管線，原生支援 iPhone HEIC/HEIF、WebP、PNG、JPG、BMP、TIFF 格式互轉。
+  - 支援 Exif 方向自動校正與等比例縮放控制。
+- **手機影片逐格截圖引擎**：
+  - 原生硬體加速播放，解決 Windows 缺乏 HEVC 延伸模組導致 iPhone 4K 60fps MOV 黑畫面問題。
+  - 支援毫秒級（~33ms）上一格／下一格精準步進。
+  - 支援高對比時間戳記浮水印（`hh:mm:ss.fff`）、原始檔名與解析度自動烙印。
+- **自動化維護**：新增 `scripts/build.ps1` 一鍵發布腳本與 `scripts/qa.ps1` 自動化建置檢核。
+
 ## 🏆 v10.0.2 (2026-08-17)
 - **使用指南**：補齊下載、瀏覽器需求、功能入口與靜態部署方式。
 - **依賴揭露**：明列 CDN 第三方函式庫與完全離線部署條件。

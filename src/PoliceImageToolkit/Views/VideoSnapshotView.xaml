@@ -1,0 +1,267 @@
+<UserControl x:Class="PoliceImageToolkit.Views.VideoSnapshotView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:models="clr-namespace:PoliceImageToolkit.Models"
+             xmlns:services="clr-namespace:PoliceImageToolkit.Services"
+             mc:Ignorable="d" 
+             d:DesignHeight="760" d:DesignWidth="1100"
+             AllowDrop="True"
+             Drop="UserControl_Drop"
+             DragOver="UserControl_DragOver">
+
+    <UserControl.Resources>
+        <DropShadowEffect x:Key="DropShadowPhone" BlurRadius="28" ShadowDepth="8" Direction="270" Color="#000000" Opacity="0.65"/>
+    </UserControl.Resources>
+
+    <Grid Margin="12,8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- 頂部功能條 -->
+        <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}" Margin="0,0,0,10" Padding="12,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="🎬 手機影片對話錄影逐格截圖" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                    <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="{StaticResource AccentPrimary}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="📂 開啟影片 (MOV/MP4)" Command="{Binding OpenVideoCommand}" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,8,0" Padding="12,6" FontSize="12"/>
+                    <Button Content="📁 開啟截圖資料夾" Command="{Binding OpenOutputFolderCommand}" Style="{StaticResource SecondaryButtonStyle}" Padding="12,6" FontSize="12"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 主體內容 (左側手機大視窗工作台 + 右側上頁對照與控制) -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="380"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- 左側：自適應大畫面手機圖框與播放容器 -->
+            <Border Grid.Column="0" Style="{StaticResource CardBorderStyle}" Margin="0,0,10,0" Padding="10">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- 手機實體外框 (自適應大視窗，寬闊舒服，清晰可見對話) -->
+                    <Border Grid.Row="0" Width="360" MaxHeight="580" VerticalAlignment="Stretch"
+                            Background="#000000" BorderBrush="#334155" BorderThickness="5" 
+                            CornerRadius="28" ClipToBounds="True" HorizontalAlignment="Center"
+                            Effect="{StaticResource DropShadowPhone}">
+                        <Grid>
+                            <!-- 影片播放器主畫面 (完美貼合手機內部螢幕) -->
+                            <MediaElement x:Name="Player" LoadedBehavior="Manual" UnloadedBehavior="Stop"
+                                          ScrubbingEnabled="True" Stretch="Uniform"
+                                          MediaOpened="Player_MediaOpened"
+                                          MediaEnded="Player_MediaEnded"/>
+
+                            <!-- 未載入影片待機畫面 (預設優雅呈現手機待機狀態) -->
+                            <Grid Panel.ZIndex="2" Visibility="{Binding HasVideoLoaded, Converter={StaticResource InverseBoolToVisConverter}}">
+                                <Border Background="#090E17" Opacity="0.95"/>
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20">
+                                    <Border Width="68" Height="68" CornerRadius="34" Background="#1E293B" HorizontalAlignment="Center" Margin="0,0,0,16">
+                                        <TextBlock Text="📱" FontSize="32" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="手機對話錄影工作台" 
+                                               FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="將手機錄影 (MOV / MP4) 拖曳至此處" 
+                                               FontSize="12" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Center" Margin="0,6,0,0" TextAlignment="Center"/>
+                                    <Border Height="1" Background="#334155" Margin="20,16,20,16"/>
+                                    <TextBlock Text="• [ 空白鍵 Space ] 秒截證物&#x0a;• [ ← / → ] 0.1s 逐格微調&#x0a;• [ ↑ / ↓ ] 1.0s 快速跳轉&#x0a;• [ Z 鍵 ] 復原/刪除上一頁&#x0a;• [ P / Enter ] 播放/暫停" 
+                                               FontSize="12" Foreground="#94A3B8" LineHeight="20" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- 快門白色閃爍回饋圖層 -->
+                            <Border x:Name="FlashOverlay" Background="White" Opacity="0" Panel.ZIndex="20" IsHitTestVisible="False"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- 時間滑桿與時間戳顯示 -->
+                    <Grid Grid.Row="1" Margin="6,12,6,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" Text="{Binding FormattedPosition}" FontWeight="Bold" Foreground="{StaticResource AccentPrimary}" VerticalAlignment="Center" Margin="0,0,10,0" FontFamily="Consolas, Segoe UI" FontSize="13"/>
+                        <Slider Grid.Column="1" Value="{Binding CurrentPositionSeconds, Mode=TwoWay}" Maximum="{Binding DurationSeconds}" 
+                                IsMoveToPointEnabled="True" VerticalAlignment="Center"
+                                PreviewMouseDown="Slider_PreviewMouseDown"
+                                PreviewMouseUp="Slider_PreviewMouseUp"/>
+                        <TextBlock Grid.Column="2" Text="{Binding FormattedDuration}" Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" Margin="10,0,0,0" FontFamily="Consolas, Segoe UI" FontSize="13"/>
+                    </Grid>
+
+                    <!-- 播放與逐格快捷工具列 -->
+                    <Grid Grid.Row="2" Margin="6,0,6,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- 播放 / 步進按鈕組 -->
+                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                            <Button x:Name="BtnPlayPause" Content="▶ 播放" Command="{Binding PlayPauseCommand}" Style="{StaticResource PrimaryButtonStyle}" Width="75" Margin="0,0,4,0" Padding="8,6" FontSize="12"/>
+                            <Button Content="-1s" Command="{Binding StepBackward1sCommand}" Style="{StaticResource SecondaryButtonStyle}" ToolTip="快退 1 秒 (Down / S 鍵)" Margin="0,0,3,0" Padding="8,6" FontSize="12"/>
+                            <Button Content="-0.1s" Command="{Binding StepBackwardCommand}" Style="{StaticResource SecondaryButtonStyle}" ToolTip="倒退 0.1 秒 (Left / A 鍵)" Margin="0,0,3,0" Padding="8,6" FontSize="12"/>
+                            <Button Content="+0.1s" Command="{Binding StepForwardCommand}" Style="{StaticResource SecondaryButtonStyle}" ToolTip="前進 0.1 秒 (Right / D 鍵)" Margin="0,0,3,0" Padding="8,6" FontSize="12"/>
+                            <Button Content="+1s" Command="{Binding StepForward1sCommand}" Style="{StaticResource SecondaryButtonStyle}" ToolTip="快進 1 秒 (Up / W 鍵)" Padding="8,6" FontSize="12"/>
+                        </StackPanel>
+
+                        <!-- 快捷鍵提示標籤 -->
+                        <TextBlock Grid.Column="1" Text="←/→ 微調 | Space 截圖 | Z 復原" FontSize="11" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                        <!-- 截圖大按鈕 -->
+                        <Button Grid.Column="2" Content="📸 擷取當前頁 (Space)" Command="{Binding CaptureSnapshotCommand}"
+                                Style="{StaticResource SuccessButtonStyle}" Padding="16,8" FontSize="13"/>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- 右側：上頁末行對照 ＋ 案號設定 ＋ 證物截圖清單 -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- 卡片 1：上頁末行對照 (鑑識比對防漏截核心) -->
+                <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}" Margin="0,0,0,10" Padding="12">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,6">
+                            <TextBlock Text="🔄 上頁末行對照 (防漏截)" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding LastCapturedSnapshot.Timestamp, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource AccentSuccess}" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="Consolas, Segoe UI"/>
+                        </Grid>
+
+                        <Border Height="140" Background="#050B14" CornerRadius="6" BorderBrush="{StaticResource BorderColor}" BorderThickness="1" ClipToBounds="True">
+                            <Grid>
+                                <!-- 上一張截圖的預覽圖 -->
+                                <Image Source="{Binding LastCapturedSnapshot.Thumbnail}" Stretch="Uniform" 
+                                       Visibility="{Binding HasLastCapturedSnapshot, Converter={StaticResource BoolToVisConverter}}"/>
+
+                                <!-- 無對照圖提示 -->
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                                            Visibility="{Binding HasLastCapturedSnapshot, Converter={StaticResource InverseBoolToVisConverter}}">
+                                    <TextBlock Text="無對照圖" FontSize="13" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="按 [ 空白鍵 Space ] 擷取第一頁" FontSize="11" Foreground="#64748B" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- 卡片 2：案號與快照設定 -->
+                <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" Margin="0,0,0,10" Padding="12">
+                    <StackPanel>
+                        <TextBlock Text="⚙️ 快照與案號標籤" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" Margin="0,0,0,8"/>
+
+                        <!-- 自訂案號輸入 -->
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="自訂案號：" Foreground="{StaticResource TextPrimary}" FontSize="12" VerticalAlignment="Center"/>
+                            <TextBox Grid.Column="1" Text="{Binding CasePrefix, UpdateSourceTrigger=PropertyChanged}" 
+                                     Background="{StaticResource BgInput}" Foreground="{StaticResource TextPrimary}" 
+                                     BorderBrush="{StaticResource BorderColor}" Padding="6,4" FontSize="12" Margin="6,0,0,0"/>
+                        </Grid>
+
+                        <!-- 輸出格式與品質 -->
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="輸出格式：" Foreground="{StaticResource TextPrimary}" FontSize="12" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Column="1" SelectedValuePath="Content" SelectedValue="{Binding OutputFormat}" Height="28" Margin="6,0,0,0">
+                                <ComboBoxItem Content="PNG" IsSelected="True"/>
+                                <ComboBoxItem Content="JPG"/>
+                            </ComboBox>
+                        </Grid>
+
+                        <!-- 時間戳浮水印與子資料夾 -->
+                        <CheckBox IsChecked="{Binding AddTimestampOverlay}" Content="烙印時間戳記浮水印 (hh:mm:ss.fff)" 
+                                  Foreground="{StaticResource TextPrimary}" FontSize="11" Margin="0,0,0,4"/>
+                        <CheckBox IsChecked="{Binding AutoCreateSubfolder}" Content="依影片名稱自動建立子資料夾" 
+                                  Foreground="{StaticResource TextPrimary}" FontSize="11" Margin="0,0,0,6"/>
+
+                        <!-- 復原按鈕 -->
+                        <Button Content="↩ 復原/刪除上一頁截圖 (Z 鍵)" Command="{Binding UndoLastCaptureCommand}"
+                                Style="{StaticResource SecondaryButtonStyle}" Margin="0,2,0,0" Padding="0,6" FontSize="12"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- 卡片 3：已擷取證物佇列清單 -->
+                <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}" Padding="10">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0" Margin="0,0,0,6">
+                            <TextBlock Text="📁 已審核證物清單" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center"/>
+                            <Button Content="清空" Command="{Binding ClearSnapshotsCommand}" Style="{StaticResource SecondaryButtonStyle}" 
+                                    HorizontalAlignment="Right" Padding="6,2" FontSize="10"/>
+                        </Grid>
+
+                        <!-- 歷史列表 (含縮圖) -->
+                        <ListView Grid.Row="1" ItemsSource="{Binding Snapshots}" Background="Transparent" BorderThickness="0"
+                                  Foreground="{StaticResource TextPrimary}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+                                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                                    <Setter Property="Padding" Value="4,5"/>
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                            <ListView.ItemTemplate>
+                                <DataTemplate DataType="{x:Type services:SnapshotResult}">
+                                    <Grid Margin="0,1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="40"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- 迷你縮圖 -->
+                                        <Border Grid.Column="0" Width="36" Height="36" Background="#0F172A" CornerRadius="4" ClipToBounds="True" Margin="0,0,6,0">
+                                            <Image Source="{Binding Thumbnail}" Stretch="UniformToFill"/>
+                                        </Border>
+
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Timestamp, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" FontWeight="Bold" Foreground="{StaticResource AccentPrimary}" FontSize="12" FontFamily="Consolas, Segoe UI"/>
+                                            <TextBlock Text="{Binding FilePath}" FontSize="10" Foreground="{StaticResource TextSecondary}" TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+
+                                        <TextBlock Grid.Column="2" Text="{Binding Width, StringFormat={}{0}p}" FontSize="10" Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

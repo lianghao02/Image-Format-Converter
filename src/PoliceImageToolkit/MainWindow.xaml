@@ -1,0 +1,116 @@
+<Window x:Class="PoliceImageToolkit.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModels="clr-namespace:PoliceImageToolkit.ViewModels"
+        xmlns:views="clr-namespace:PoliceImageToolkit.Views"
+        mc:Ignorable="d"
+        Title="警務影像轉檔與手機影片截圖工具箱 (Police-Image-Toolkit v11.0.0)"
+        Icon="app.ico"
+        Height="780" Width="1100"
+        MinHeight="600" MinWidth="850"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BgPrimary}"
+        Foreground="{StaticResource TextPrimary}"
+        FontFamily="{StaticResource AppFont}">
+
+    <Window.Resources>
+        <!-- 導航單選按鈕樣式 (必須置於使用處前) -->
+        <Style x:Key="NavRadioButtonStyle" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="border" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource BgCard}"/>
+                                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource AccentPrimary}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Window.DataContext>
+        <viewModels:MainViewModel/>
+    </Window.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="56"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="28"/>
+        </Grid.RowDefinitions>
+
+        <!-- 頂部現代導航標題列 -->
+        <Border Grid.Row="0" Background="{StaticResource BgSecondary}" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1" Padding="16,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- 軟體 Logo 與標題 -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="🛡️" FontSize="22" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Police-Image-Toolkit" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
+                        <TextBlock Text="警務手機影像轉檔與逐格截圖系統 (v11.0.0)" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- 導航分頁切換按鈕 (Tab Buttons) -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <!-- 圖片轉檔分頁鈕 -->
+                    <RadioButton x:Name="TabImage" Content="📁 手機圖片批次轉檔" IsChecked="True" 
+                                 GroupName="NavTabs" Checked="TabImage_Checked"
+                                 Style="{StaticResource NavRadioButtonStyle}" Margin="0,0,8,0"/>
+
+                    <!-- 影片截圖分頁鈕 -->
+                    <RadioButton x:Name="TabVideo" Content="🎬 手機影片逐格截圖" 
+                                 GroupName="NavTabs" Checked="TabVideo_Checked"
+                                 Style="{StaticResource NavRadioButtonStyle}"/>
+                </StackPanel>
+
+                <!-- 右側環境狀態標籤 -->
+                <Border Grid.Column="2" Background="{StaticResource BgCard}" CornerRadius="12" Padding="10,4" VerticalAlignment="Center">
+                    <TextBlock Text="⚡ .NET 8 LTS / Win-x64 原生加速" FontSize="11" Foreground="{StaticResource AccentSuccess}"/>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- 主體內容區 (切換 View) -->
+        <Grid Grid.Row="1">
+            <views:ImageConverterView x:Name="ViewImageConverter" DataContext="{Binding ImageConverter}" Visibility="Visible"/>
+            <views:VideoSnapshotView x:Name="ViewVideoSnapshot" DataContext="{Binding VideoSnapshot}" Visibility="Collapsed"/>
+        </Grid>
+
+        <!-- 底部系統狀態列 -->
+        <Border Grid.Row="2" Background="{StaticResource BgSecondary}" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,1,0,0" Padding="12,0">
+            <Grid VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="本機處理 100% 離線執行 | 嚴禁以衍生圖檔取代原始司法證物" FontSize="11" Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Text="Police-Image-Toolkit Desktop Edition" FontSize="11" Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

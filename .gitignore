@@ -1,4 +1,4 @@
-﻿node_modules/
+node_modules/
 dist/
 build/
 .env
@@ -8,3 +8,7 @@ Thumbs.db
 *.log
 python_embed/
 python-embed/
+bin/
+obj/
+*.user
+*.suo
