@@ -11,7 +11,7 @@
 
 主力版本已全面完成由 **HTML／JavaScript → C#／.NET 8 LTS／WPF (MVVM)** 遷移。
 - **現行原生主線**：原始碼位於 `src/PoliceImageToolkit/`，發行以單檔免安裝 `dist/PoliceImageToolkit.exe` 為唯一基準。
-- **歷史隔離封存**：原純前端網頁版封存於 `legacy_web/`，僅作功能比對與備援；專案無 Python 原始碼或執行依賴，不維護雙主線。
+- **純淨單一主線**：歷史版本已封存於 Git 提交歷史；專案無 Python 原始碼或執行依賴，不維護雙主線。
 
 ---
 
@@ -58,7 +58,6 @@
 ### 專案結構
 ```text
 03_Police-Image-Toolkit/
-├── legacy_web/                   # 📦【歷史隔離封存】原純前端網頁版本
 ├── src/
 │   └── PoliceImageToolkit/       # 🚀【C# .NET 8 WPF 原生桌面專案】
 │       ├── app.ico / app_icon.png# 專屬警務鑑識圖示
@@ -70,6 +69,7 @@
     ├── build.ps1                 # 一鍵發布單檔 Exe (含快取清理、無 pdb、圖示通知)
     └── qa.ps1                    # QA 檢核與建置測試腳本
 ```
+
 
 ### 發布單檔 Exe
 ```powershell

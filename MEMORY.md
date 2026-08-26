@@ -8,7 +8,7 @@
 
 - **專案名稱**：警務手機影像轉檔與逐格截圖系統 (`Police-Image-Toolkit`)
 - **現行架構**：C# 13 / .NET 8 LTS / WPF (MVVM 架構)
-- **歷史封存**：原純前端網頁版（v10.0）已封存於 `legacy_web/` 目錄，僅作功能對照與歷史備援。
+- **歷史演進**：原純前端網頁版（v10.0）已封存於 Git 提交歷史，工作區已全數移除，保持純粹的 C# WPF 單一專案結構。
 - **發行模式**：Self-Contained Single-File（單檔免安裝，大小約 69MB，路徑為 `dist/PoliceImageToolkit.exe`），零外部依賴、秒開、100% 離線本機處理。
 
 ---
@@ -17,7 +17,6 @@
 
 ```text
 03_Police-Image-Toolkit/
-├── legacy_web/                   # 📦【歷史隔離封存】原純前端網頁版本
 ├── src/
 │   └── PoliceImageToolkit/       # 🚀【C# .NET 8 WPF 核心】
 │       ├── PoliceImageToolkit.csproj

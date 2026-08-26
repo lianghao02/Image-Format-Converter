@@ -1,14 +1,24 @@
-node_modules/
+# 建置產物與快取
+**/bin/
+**/obj/
 dist/
 build/
+
+# 環境設定與私密檔案
 .env
+*.user
+*.suo
+
+# 系統與 IDE 快取
 .DS_Store
 Thumbs.db
 .vscode/
+
+# 執行日誌
 *.log
+crash.log
+
+# 歷史套件
 python_embed/
 python-embed/
-bin/
-obj/
-*.user
-*.suo
+node_modules/
