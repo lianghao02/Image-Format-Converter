@@ -1,59 +1,97 @@
 # 🛡️ 警務手機影像轉檔與逐格截圖系統 Police-Image-Toolkit (v11.2.0)
 
-[![Version](https://img.shields.io/badge/version-v11.2.0-blue.svg)](https://github.com/lianghao02/Police-Image-Toolkit)
+[![Version](https://img.shields.io/badge/version-v11.2.0-blue.svg)](https://github.com/lianghao02/Police-Image-Toolkit/releases)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20x64-0078D6.svg)](https://microsoft.com/windows)
 [![.NET](https://img.shields.io/badge/.NET-8.0%20LTS-purple.svg)](https://dotnet.microsoft.com)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-專為第一線外勤與警務同仁設計之 Windows 原生免安裝影像處理工具箱。
-徹底擺脫瀏覽器記憶體限制，專注於**手機圖片高速批次轉檔**、**手機影片精準逐格截圖**與**長截圖分頁輔助**。
-
-## 技術架構現況（2026-08-26）
-
-主力版本已全面完成由 **HTML／JavaScript → C#／.NET 8 LTS／WPF (MVVM)** 遷移。
-- **現行原生主線**：原始碼位於 `src/PoliceImageToolkit/`，發行以單檔免安裝 `dist/PoliceImageToolkit.exe` 為唯一基準。
-- **純淨單一主線**：歷史版本已封存於 Git 提交歷史；專案無 Python 原始碼或執行依賴，不維護雙主線。
+專為第一線外勤與警務鑑識同仁打造之 **Windows 原生免安裝影像處理工具箱**。
+徹底擺脫瀏覽器記憶體限制與資安疑慮，專注於**手機圖片高速批次轉檔**、**手機影片精準逐格截圖**與**長截圖分頁輔助**。
 
 ---
 
-## ⚡ 核心功能特色
+## 🚀 下載與快速開始 (Download & Quick Start)
+
+### 📥 取得程式（請選擇其一下載）
+| 下載項目 | 格式 | 說明 | 連結 |
+|:---|:---:|:---|:---:|
+| **PoliceImageToolkit.exe** | `.exe` | **推薦**。免安裝單一執行檔，下載後直接雙擊開啟 | [⬇️ 點此直接下載（最新版）](https://github.com/lianghao02/Police-Image-Toolkit/releases/latest/download/PoliceImageToolkit.exe) |
+| **PoliceImageToolkit-v11.2.0-win-x64.zip** | `.zip` | 壓縮包（適用於被瀏覽器或端點限制直接下載 exe 之環境） | [📦 點此下載 ZIP 壓縮檔](https://github.com/lianghao02/Police-Image-Toolkit/releases/latest/download/PoliceImageToolkit-v11.2.0-win-x64.zip) |
+
+> 🔗 想下載歷史版本或查看詳細更新紀錄，請至 [GitHub Releases 頁面](https://github.com/lianghao02/Police-Image-Toolkit/releases)。
+
+### 💻 系統需求
+* **作業系統**：Windows 10 / 11 (64-bit)
+* **執行環境**：**完全免安裝、零相依性**（已內建獨立 Runtime，電腦無需預先安裝 .NET）
+* **網路狀態**：**100% 離線運作**（無任何對外連線，嚴格確保公務與司法證物隱私安全）
+
+### 💡 安裝與初次執行說明
+1. **免安裝**：下載 `PoliceImageToolkit.exe` 後，放置於任意資料夾（如桌面或隨身碟）即可。
+2. **雙擊即開**：直接雙擊 `PoliceImageToolkit.exe` 開啟工具。
+3. **若出現 Windows SmartScreen 防護提示**：
+   * 由於本程式為內部獨立編譯開源軟體，未購買微軟商業數位憑證，Windows 可能跳出「*Windows 已保護您的電腦*」藍色提示。
+   * 請點擊 **「其他資訊」** ➜ 再點擊 **「仍要執行」** 即可正常啟動。
+
+---
+
+## ⚡ 三大核心功能與操作教學
 
 ### 1. 📁 手機圖片高速批次轉檔 (Image Batch Converter)
-- **格式通吃**：支援 iPhone HEIC/HEIF、Android WebP、PNG、JPG、BMP、TIFF 等主流手機格式互轉。
-- **多核心平行處理**：內建 CPU 多執行緒管線，上百張照片拖曳即轉，極速不卡頓。
-- **Exif 方向自動校正**：自動辨識手機拍攝方向中繼資料，修正旋轉角度，轉出正常視角圖檔。
-- **品質與大小彈性調整**：可自訂 JPG 壓縮品質與等比例縮放限制。
+專門解決外勤人員收到民眾 iPhone (HEIC) 或 Android (WebP) 照片無法在公務電腦開啟的問題。
+
+* **支援格式**：iPhone `HEIC`/`HEIF`、Android `WebP`、`PNG`、`JPG`、`BMP`、`TIFF`。
+* **操作方式**：
+  1. 將照片批次**拖曳**進主視窗。
+  2. 選擇目標輸出格式（預設轉為相容性最高之 `JPG`）。
+  3. 設定壓縮品質（預設 90%）與是否限制最大寬高（預設等比例原尺寸）。
+  4. 點擊 **「開始批次轉檔」**，多核心平行處理，百張相片瞬間完成。
+* **智慧方向校正**：自動辨識手機拍攝 Exif 中繼資料，修正旋轉角度，不再歪頭看照片。
+
+---
 
 ### 2. 🎬 手機影片精準逐格截圖 (Video Frame Snapshot)
-- **自適應大畫面手機圖框**：專為手機側錄與 LINE / 簡訊對話滾動錄影打造，畫面大而清晰。
-- **🔄 上頁末行對照視窗 (Anti-Leak Preview)**：即時預覽前一張截圖與時間戳，滾動比對防漏行或重複。
-- **⚡ 全域鍵盤快捷鍵系統**（文字輸入時自動旁路）：
-  - `Space`（空白鍵）：**秒截證物**（附帶快門白光閃爍回饋）。
-  - `←` / `→` 或 `A` / `D`：**微調 0.1 秒**（逐格精準對齊）。
-  - `↑` / `↓` 或 `W` / `S`：**快進 / 快退 1.0 秒**。
-  - `Z` 鍵：**復原 / 刪除上一頁截圖**。
-  - `P` 或 `Enter`：**播放 / 暫停**。
-- **🚀 零阻塞極速連續操作**：非同步記憶體捕捉與背景存檔，截圖瞬間不鎖定 UI，可連按移動並連續秒截。
-- **純淨原始輸出**：預設取消畫面內部遮擋條帶，輸出 100% 原始畫面，檔名自帶毫秒時間戳與自訂案號。
+專為翻拍監視器、密錄器、手機對話紀錄（LINE / 簡訊）滾動錄影打造之逐格證物截圖工具。
+
+* **🔄 上頁末行對照視窗 (Anti-Leak Preview)**：即時顯示前一張截圖畫面與時間戳，比對對話紀錄絕不漏行或重複。
+* **⚡ 全域極速鍵盤快捷鍵**（支援盲按秒截，輸入文字時自動旁路）：
+  | 按鍵 | 動作說明 |
+  |:---:|:---|
+  | **`Space`（空白鍵）** | **秒截當前證物畫面**（伴隨快門白光閃爍視覺回饋，非同步零阻塞存檔） |
+  | **`←` / `→`** 或 **`A` / `D`** | **微調 0.1 秒**（逐格精準對齊） |
+  | **`↑` / `↓`** 或 **`W` / `S`** | **快進 / 快退 1.0 秒** |
+  | **`Z`** | **復原 / 刪除上一張截圖**（防誤截快速清理） |
+  | **`P`** 或 **`Enter`** | **播放 / 暫停影片** |
+* **純淨原始輸出**：輸出 100% 原始解析度圖檔，檔名自動標註毫秒時間戳與自訂案號前綴。
+
+---
 
 ### 3. 📜 手機長截圖分頁輔助 (Long Screenshot Splitter)
-- **Word / 報表圖框比例切分**：自動依照 Photo-Report-Generator 或 Word 圖框實體比例（預設 `8 cm × 17.5 cm`、重疊 `5 mm`）精準計算最佳裁切頁數。
-- **前後頁重疊遮罩防漏字**：相鄰頁面保留固定重疊像素，避免關鍵字句恰好落在分頁切線上；預覽中以黃色斜線遮罩標示（僅供預覽，不輸出至圖檔）。
-- **原始像素零失真裁切**：堅持原始點陣裁切，絕不重新取樣或縮放，維持原始長截圖字體清晰度。
-- **低解析度常駐警示**：來源長截圖寬度低於 `600px` 時即時提示放進 Word 可能模糊，引導使用者索取原始檔案（如 Telegram 請以「檔案」傳送而非壓縮相片）。
-- **手機框預覽與導航**：支援單一圖檔拖曳載入，可用滑鼠滾輪、鍵盤 `↑`/`↓`、`PageUp`/`PageDown`、`Home`/`End` 快速檢視全圖。
+專為對話紀錄長截圖輸出至公務「偵查報告書」或 Word 報表圖框設計。
+
+* **Word / 報表圖框精準切分**：依照報告書常用圖框實體比例（預設 `8 cm × 17.5 cm`、重疊 `5 mm`）自動計算最佳切分頁數。
+* **前後頁重疊遮罩（防漏字）**：相鄰頁面保留固定重疊像素，避免關鍵字句恰好落在分頁裁切線上；預覽畫面以黃色虛線遮罩清晰標示。
+* **原始像素 1:1 零失真**：堅持原始點陣精準裁切，不重新取樣或縮放，維持文字絕對清晰。
+* **低解析度常駐警告**：原圖寬度低於 `600px` 時即時提示放進 Word 可能模糊，引導使用者向當事人索取原始長截圖（如 Telegram 請以「檔案」傳送而非壓縮相片）。
 
 ---
 
-## 🚀 下載、依賴與執行
+## ❓ 常見問題 (FAQ)
 
-- **免安裝單檔執行**：直接下載或發布產出之 `dist/PoliceImageToolkit.exe` 即可點擊開啟（0.1 秒秒開）。
-- **零 .NET Runtime 依賴**：採 Self-Contained 獨立封裝，目標電腦不需預先安裝 .NET Runtime。
-- **100% 離線本機處理**：所有影音與圖片解碼運算均在電腦本機端完成，不連外網、無資料外洩疑慮。
-- **證物注意事項**：輸出圖檔為衍生檔案，正式司法程序請妥善保存原始手機影音檔與操作紀錄。
+#### Q1: 下載後需要安裝或設定任何執行環境嗎？
+> **不需要。** 本程式採用 .NET 8 LTS Self-Contained 獨立單檔打包，已內建所有必備核心庫，目標電腦不需要安裝 .NET Runtime 或其他軟體，隨點隨開。
+
+#### Q2: 為什麼 Windows 會提示「Windows 已保護您的電腦」？
+> 這是微軟針對未購買昂貴企業憑證的開源軟體的標準 SmartScreen 提示。本專案原始碼完全公開開源，無任何惡意代碼，請安心點擊 **「其他資訊」 ➜ 「仍要執行」** 即可。
+
+#### Q3: 影像與影音資料會不會被上傳到雲端？
+> **絕對不會。** 本工具為 100% 離線桌面程式，所有編解碼運算均在您的電腦本機 CPU 執行，無任何網路連線行為，完全符合司法與警務公務資安規範。
+
+#### Q4: 若特定 iPhone HEIC 或 WebP 圖檔無法解碼該怎麼辦？
+> 本工具會呼叫 Windows 內建的 WIC 影像編解碼管線。若舊版 Windows 10 缺少相關 Codec，系統會跳出繁體中文友善提示，請至微軟市集安裝免費的「HEIF 影像延伸模組」或「WebP 影像延伸模組」即可。
 
 ---
 
-## 🛠️ 開發與建置指令
+## 🛠️ 開發者資訊與本機建置
 
 ### 專案結構
 ```text
@@ -61,22 +99,26 @@
 ├── src/
 │   └── PoliceImageToolkit/       # 🚀【C# .NET 8 WPF 原生桌面專案】
 │       ├── app.ico / app_icon.png# 專屬警務鑑識圖示
-│       ├── Models/               # 轉檔、影片快照與長截圖分頁模型
+│       ├── Models/               # 轉檔、影片快照與長截圖分頁資料模型
 │       ├── Services/             # 轉檔、影片截圖與長截圖裁切核心引擎
-│       ├── ViewModels/           # MVVM 邏輯
-│       └── Views/                # 現代化 Fluent UI 介面
+│       ├── ViewModels/           # MVVM 架構邏輯
+│       └── Views/                # Fluent UI 風格 WPF 介面
 └── scripts/
-    ├── build.ps1                 # 一鍵發布單檔 Exe (含快取清理、無 pdb、圖示通知)
+    ├── build.ps1                 # 一鍵發布單檔 Exe (含快取清理、無 pdb、圖示快取重新整理)
     └── qa.ps1                    # QA 檢核與建置測試腳本
 ```
 
-
-### 發布單檔 Exe
+### 本機建置發布指令
 ```powershell
+# 執行 QA 與語法建置檢核
+powershell -ExecutionPolicy Bypass -File .\scripts\qa.ps1
+
+# 發布單檔獨立免安裝 Exe (產出於 dist/PoliceImageToolkit.exe)
 powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1
 ```
 
-### 執行 QA 檢核
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\qa.ps1
-```
+---
+
+## 📄 授權條款 (License)
+
+本專案採用 [MIT License](LICENSE) 授權開放使用。
