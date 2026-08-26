@@ -32,8 +32,7 @@
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button Content="➕ 新增檔案" Command="{Binding AddFilesCommand}" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,8,0"/>
-                    <Button Content="🗑️ 清空清單" Command="{Binding ClearAllCommand}" Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,8,0"/>
-                    <Button Content="📂 開啟輸出資料夾" Command="{Binding OpenOutputDirectoryCommand}" Style="{StaticResource SecondaryButtonStyle}"/>
+                    <Button Content="🗑️ 清空清單" Command="{Binding ClearAllCommand}" Style="{StaticResource SecondaryButtonStyle}"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -143,9 +142,11 @@
                               Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center" Margin="0,0,16,0"/>
                 </StackPanel>
 
-                <!-- 自訂輸出資料夾 -->
+                <!-- 輸出位置管理：變更位置後可直接開啟查看結果 -->
                 <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Content="📍 變更輸出路徑" Command="{Binding BrowseOutputDirectoryCommand}" Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,8,0"/>
+                    <Button Content="📂 開啟輸出資料夾" Command="{Binding OpenOutputDirectoryCommand}" Style="{StaticResource SecondaryButtonStyle}"
+                            ToolTip="至少完成一筆轉檔後即可開啟"/>
                 </StackPanel>
             </Grid>
         </Border>

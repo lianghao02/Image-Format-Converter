@@ -6,7 +6,7 @@
         xmlns:viewModels="clr-namespace:PoliceImageToolkit.ViewModels"
         xmlns:views="clr-namespace:PoliceImageToolkit.Views"
         mc:Ignorable="d"
-        Title="警務影像轉檔與手機影片截圖工具箱 (Police-Image-Toolkit v11.0.0)"
+        Title="警務影像轉檔與手機影片截圖工具箱 (Police-Image-Toolkit v11.2.0)"
         Icon="app.ico"
         Height="780" Width="1100"
         MinHeight="600" MinWidth="850"
@@ -67,10 +67,12 @@
 
                 <!-- 軟體 Logo 與標題 -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="🛡️" FontSize="22" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <Border Width="30" Height="30" CornerRadius="7" ClipToBounds="True" Margin="0,0,10,0" VerticalAlignment="Center">
+                        <Image Source="app_icon.png" Stretch="UniformToFill"/>
+                    </Border>
                     <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="Police-Image-Toolkit" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
-                        <TextBlock Text="警務手機影像轉檔與逐格截圖系統 (v11.0.0)" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
+                        <TextBlock Text="Police-Image-Toolkit" Style="{StaticResource Heading1TextStyle}" FontSize="18"/>
+                        <TextBlock Text="警務手機影像轉檔與逐格截圖系統 (v11.2.0)" Style="{StaticResource HelperTextStyle}"/>
                     </StackPanel>
                 </StackPanel>
 
@@ -83,8 +85,12 @@
 
                     <!-- 影片截圖分頁鈕 -->
                     <RadioButton x:Name="TabVideo" Content="🎬 手機影片逐格截圖" 
-                                 GroupName="NavTabs" Checked="TabVideo_Checked"
-                                 Style="{StaticResource NavRadioButtonStyle}"/>
+                                  GroupName="NavTabs" Checked="TabVideo_Checked"
+                                  Style="{StaticResource NavRadioButtonStyle}" Margin="0,0,8,0"/>
+
+                    <RadioButton x:Name="TabLongScreenshot" Content="📱 長截圖分頁輔助"
+                                  GroupName="NavTabs" Checked="TabLongScreenshot_Checked"
+                                  Style="{StaticResource NavRadioButtonStyle}"/>
                 </StackPanel>
 
                 <!-- 右側環境狀態標籤 -->
@@ -98,6 +104,7 @@
         <Grid Grid.Row="1">
             <views:ImageConverterView x:Name="ViewImageConverter" DataContext="{Binding ImageConverter}" Visibility="Visible"/>
             <views:VideoSnapshotView x:Name="ViewVideoSnapshot" DataContext="{Binding VideoSnapshot}" Visibility="Collapsed"/>
+            <views:LongScreenshotSplitView x:Name="ViewLongScreenshotSplit" DataContext="{Binding LongScreenshotSplit}" Visibility="Collapsed"/>
         </Grid>
 
         <!-- 底部系統狀態列 -->

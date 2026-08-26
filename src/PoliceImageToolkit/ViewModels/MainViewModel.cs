@@ -10,9 +10,11 @@ public class MainViewModel : ViewModelBase
     {
         IImageService imageService = new ImageService();
         IVideoService videoService = new VideoService();
+        ILongScreenshotService longScreenshotService = new LongScreenshotService();
 
         ImageConverter = new ImageConverterViewModel(imageService);
         VideoSnapshot = new VideoSnapshotViewModel(videoService);
+        LongScreenshotSplit = new LongScreenshotSplitViewModel(longScreenshotService);
     }
 
     public string AppTitle => "警務影像轉檔與手機影片截圖工具箱 (Police-Image-Toolkit v11.0.0)";
@@ -25,4 +27,5 @@ public class MainViewModel : ViewModelBase
 
     public ImageConverterViewModel ImageConverter { get; }
     public VideoSnapshotViewModel VideoSnapshot { get; }
+    public LongScreenshotSplitViewModel LongScreenshotSplit { get; }
 }

@@ -9,6 +9,8 @@ namespace PoliceImageToolkit.Services;
 
 public class ImageService : IImageService
 {
+    private const long MaximumDecodedPixels = 100_000_000;
+
     public async Task ConvertAsync(ImageTaskItem item, ImageConvertOptions options, CancellationToken ct = default)
     {
         item.Status = TaskStatus.Processing;
@@ -18,6 +20,7 @@ public class ImageService : IImageService
 
         await Task.Run(() =>
         {
+            string? reservedOutputPath = null;
             try
             {
                 if (!File.Exists(item.FilePath))
@@ -33,16 +36,6 @@ public class ImageService : IImageService
                 string baseName = Path.GetFileNameWithoutExtension(item.FilePath);
                 string ext = options.TargetFormat.ToLowerInvariant().TrimStart('.');
                 if (ext == "jpeg") ext = "jpg";
-                string outPath = Path.Combine(options.OutputDirectory, $"{baseName}.{ext}");
-
-                // 避免覆寫若同名
-                int counter = 1;
-                while (File.Exists(outPath))
-                {
-                    outPath = Path.Combine(options.OutputDirectory, $"{baseName}_{counter}.{ext}");
-                    counter++;
-                }
-
                 ct.ThrowIfCancellationRequested();
                 item.Progress = 30;
 
@@ -51,7 +44,7 @@ public class ImageService : IImageService
                 var decoder = BitmapDecoder.Create(
                     fs,
                     BitmapCreateOptions.PreservePixelFormat | BitmapCreateOptions.IgnoreColorProfile,
-                    BitmapCacheOption.OnLoad
+                    BitmapCacheOption.OnDemand
                 );
 
                 if (decoder.Frames.Count == 0)
@@ -60,6 +53,17 @@ public class ImageService : IImageService
                 }
 
                 BitmapFrame frame = decoder.Frames[0];
+                long pixelCount = (long)frame.PixelWidth * frame.PixelHeight;
+                if (pixelCount <= 0 || pixelCount > MaximumDecodedPixels)
+                {
+                    throw new InvalidDataException($"影像解析度 {frame.PixelWidth} × {frame.PixelHeight} 超過安全處理上限。");
+                }
+
+                if (Path.GetExtension(item.FilePath).Equals(".gif", StringComparison.OrdinalIgnoreCase) && decoder.Frames.Count > 1)
+                {
+                    throw new NotSupportedException("目前不支援動畫 GIF；為避免遺失後續影格，請先轉成單張圖片或逐格匯出。");
+                }
+
                 BitmapSource processedBitmap = frame;
                 item.Progress = 50;
 
@@ -100,15 +104,15 @@ public class ImageService : IImageService
 
                 encoder.Frames.Add(BitmapFrame.Create(processedBitmap));
 
-                using (var outFs = new FileStream(outPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                using (var outFs = CreateUniqueOutputFile(options.OutputDirectory, baseName, ext, out reservedOutputPath))
                 {
                     encoder.Save(outFs);
                 }
 
                 sw.Stop();
-                var outInfo = new FileInfo(outPath);
+                var outInfo = new FileInfo(reservedOutputPath);
 
-                item.OutputPath = outPath;
+                item.OutputPath = reservedOutputPath;
                 item.OutputSizeBytes = outInfo.Length;
                 item.Elapsed = sw.Elapsed;
                 item.Progress = 100;
@@ -117,14 +121,16 @@ public class ImageService : IImageService
             }
             catch (OperationCanceledException)
             {
+                DeletePartialOutput(reservedOutputPath);
                 item.Status = TaskStatus.Failed;
                 item.StatusMessage = "已取消";
             }
             catch (Exception ex)
             {
+                DeletePartialOutput(reservedOutputPath);
                 sw.Stop();
                 item.Status = TaskStatus.Failed;
-                item.StatusMessage = $"失敗: {ex.Message}";
+                item.StatusMessage = $"失敗: {GetUserFriendlyError(item.FilePath, ex)}";
             }
         }, ct);
     }
@@ -150,6 +156,50 @@ public class ImageService : IImageService
             }
             return "無 Exif 中繼資料";
         });
+    }
+
+    private static FileStream CreateUniqueOutputFile(string outputDirectory, string baseName, string extension, out string outputPath)
+    {
+        for (int counter = 0; ; counter++)
+        {
+            string suffix = counter == 0 ? string.Empty : $"_{counter}";
+            string candidate = Path.Combine(outputDirectory, $"{baseName}{suffix}.{extension}");
+            try
+            {
+                var stream = new FileStream(candidate, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+                outputPath = candidate;
+                return stream;
+            }
+            catch (IOException) when (File.Exists(candidate))
+            {
+                // 同名檔已存在或被另一個平行工作搶先建立，改用下一個流水號。
+            }
+        }
+    }
+
+    private static void DeletePartialOutput(string? outputPath)
+    {
+        if (string.IsNullOrEmpty(outputPath)) return;
+
+        try
+        {
+            if (File.Exists(outputPath)) File.Delete(outputPath);
+        }
+        catch
+        {
+            // 保留原始例外訊息；無法清除時不將殘檔誤報為成功輸出。
+        }
+    }
+
+    private static string GetUserFriendlyError(string sourcePath, Exception ex)
+    {
+        string extension = Path.GetExtension(sourcePath).ToUpperInvariant();
+        if (extension is ".HEIC" or ".HEIF" or ".WEBP" && ex is NotSupportedException or FileFormatException)
+        {
+            return $"無法解碼 {extension}。請確認 Windows 已具備此格式的影像編解碼元件後重試。";
+        }
+
+        return ex.Message;
     }
 
     private static int GetExifOrientation(BitmapMetadata metadata)

@@ -17,6 +17,9 @@ public class VideoService : IVideoService
     {
         return await Task.Run(() =>
         {
+            string? reservedOutputPath = null;
+            try
+            {
             string outDir = string.IsNullOrWhiteSpace(config.OutputDirectory)
                 ? Path.GetDirectoryName(videoFilePath) ?? Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
                 : config.OutputDirectory;
@@ -46,26 +49,16 @@ public class VideoService : IVideoService
             }
 
             // 2. 檔名構造
-            string prefix = string.IsNullOrWhiteSpace(config.CasePrefix)
+            string safeCasePrefix = SanitizeFileNameSegment(config.CasePrefix);
+            string prefix = string.IsNullOrWhiteSpace(safeCasePrefix)
                 ? config.Prefix
-                : $"{config.CasePrefix}_{config.Prefix}";
+                : $"{safeCasePrefix}_{config.Prefix}";
 
             string timeStr = config.IncludeMilliseconds
                 ? $"{(int)currentPosition.TotalHours:00}-{currentPosition.Minutes:00}-{currentPosition.Seconds:00}_{currentPosition.Milliseconds:000}"
                 : $"{(int)currentPosition.TotalHours:00}-{currentPosition.Minutes:00}-{currentPosition.Seconds:00}";
 
             string ext = config.OutputFormat.ToLowerInvariant() == "jpg" ? "jpg" : "png";
-            string fileName = $"{prefix}{timeStr}.{ext}";
-            string fullPath = Path.Combine(outDir, fileName);
-
-            int counter = 1;
-            while (File.Exists(fullPath))
-            {
-                fileName = $"{prefix}{timeStr}_{counter}.{ext}";
-                fullPath = Path.Combine(outDir, fileName);
-                counter++;
-            }
-
             // 3. 編碼並存檔
             BitmapEncoder encoder = ext == "jpg"
                 ? new JpegBitmapEncoder { QualityLevel = Math.Clamp(config.JpgQuality, 10, 100) }
@@ -73,12 +66,12 @@ public class VideoService : IVideoService
 
             encoder.Frames.Add(BitmapFrame.Create(processedBitmap));
 
-            using (var fs = new FileStream(fullPath, FileMode.Create, FileAccess.Write, FileShare.None))
+            using (var fs = CreateUniqueOutputFile(outDir, prefix, timeStr, ext, out reservedOutputPath))
             {
                 encoder.Save(fs);
             }
 
-            var fi = new FileInfo(fullPath);
+            var fi = new FileInfo(reservedOutputPath);
 
             // 產生輕量縮圖供 UI 對照顯示 (縮小至寬度 400px)
             BitmapSource thumb = processedBitmap;
@@ -91,13 +84,19 @@ public class VideoService : IVideoService
             }
 
             return new SnapshotResult(
-                fullPath,
+                reservedOutputPath,
                 currentPosition,
                 processedBitmap.PixelWidth,
                 processedBitmap.PixelHeight,
                 fi.Length,
                 thumb
             );
+            }
+            catch
+            {
+                DeletePartialOutput(reservedOutputPath);
+                throw;
+            }
         });
     }
 
@@ -161,5 +160,49 @@ public class VideoService : IVideoService
         renderBitmap.Render(visual);
         renderBitmap.Freeze();
         return renderBitmap;
+    }
+
+    private static FileStream CreateUniqueOutputFile(string outputDirectory, string prefix, string timeStamp, string extension, out string outputPath)
+    {
+        for (int counter = 0; ; counter++)
+        {
+            string suffix = counter == 0 ? string.Empty : $"_{counter}";
+            string candidate = Path.Combine(outputDirectory, $"{prefix}{timeStamp}{suffix}.{extension}");
+            try
+            {
+                var stream = new FileStream(candidate, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+                outputPath = candidate;
+                return stream;
+            }
+            catch (IOException) when (File.Exists(candidate))
+            {
+                // 同名截圖已存在或被其他工作搶先建立，改用下一個流水號。
+            }
+        }
+    }
+
+    private static string SanitizeFileNameSegment(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+
+        var invalidChars = Path.GetInvalidFileNameChars()
+            .Append(Path.DirectorySeparatorChar)
+            .Append(Path.AltDirectorySeparatorChar)
+            .ToHashSet();
+        return new string(value.Trim().Select(c => invalidChars.Contains(c) ? '_' : c).ToArray());
+    }
+
+    private static void DeletePartialOutput(string? outputPath)
+    {
+        if (string.IsNullOrEmpty(outputPath)) return;
+
+        try
+        {
+            if (File.Exists(outputPath)) File.Delete(outputPath);
+        }
+        catch
+        {
+            // 保留原始例外，讓呼叫端回報實際存檔失敗原因。
+        }
     }
 }

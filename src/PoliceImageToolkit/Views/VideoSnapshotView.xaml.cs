@@ -12,8 +12,10 @@ namespace PoliceImageToolkit.Views;
 
 public partial class VideoSnapshotView : UserControl
 {
+    private const double WideWorkspaceMinWidth = 1450;
     private readonly DispatcherTimer _timer;
     private bool _isUserDraggingSlider = false;
+    private bool? _isWideWorkspace;
 
     public VideoSnapshotView()
     {
@@ -29,6 +31,77 @@ public partial class VideoSnapshotView : UserControl
     }
 
     private VideoSnapshotViewModel? ViewModel => DataContext as VideoSnapshotViewModel;
+
+    private void UserControl_Loaded(object sender, RoutedEventArgs e)
+    {
+        UpdateRightWorkspaceLayout();
+    }
+
+    private void UserControl_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        UpdateRightWorkspaceLayout();
+    }
+
+    private void UpdateRightWorkspaceLayout()
+    {
+        bool useWideWorkspace = ActualWidth >= WideWorkspaceMinWidth;
+        if (_isWideWorkspace == useWideWorkspace) return;
+
+        _isWideWorkspace = useWideWorkspace;
+
+        if (useWideWorkspace)
+        {
+            RightWorkspace.ColumnDefinitions[0].Width = new GridLength(1, GridUnitType.Star);
+            RightWorkspace.ColumnDefinitions[1].Width = new GridLength(1, GridUnitType.Star);
+            RightWorkspace.RowDefinitions[0].Height = GridLength.Auto;
+            RightWorkspace.RowDefinitions[1].Height = new GridLength(1, GridUnitType.Star);
+            RightWorkspace.RowDefinitions[2].Height = new GridLength(0);
+
+            Grid.SetColumn(CompareCard, 0);
+            Grid.SetColumnSpan(CompareCard, 1);
+            Grid.SetRow(CompareCard, 0);
+            Grid.SetRowSpan(CompareCard, 3);
+            CompareCard.Margin = new Thickness(0, 0, 8, 0);
+            ComparePreview.MinHeight = 300;
+            ComparePreview.Height = double.NaN;
+
+            Grid.SetColumn(SettingsCard, 1);
+            Grid.SetColumnSpan(SettingsCard, 1);
+            Grid.SetRow(SettingsCard, 0);
+            Grid.SetRowSpan(SettingsCard, 1);
+
+            Grid.SetColumn(EvidenceCard, 1);
+            Grid.SetColumnSpan(EvidenceCard, 1);
+            Grid.SetRow(EvidenceCard, 1);
+            Grid.SetRowSpan(EvidenceCard, 2);
+        }
+        else
+        {
+            RightWorkspace.ColumnDefinitions[0].Width = new GridLength(1, GridUnitType.Star);
+            RightWorkspace.ColumnDefinitions[1].Width = new GridLength(0);
+            RightWorkspace.RowDefinitions[0].Height = GridLength.Auto;
+            RightWorkspace.RowDefinitions[1].Height = GridLength.Auto;
+            RightWorkspace.RowDefinitions[2].Height = new GridLength(1, GridUnitType.Star);
+
+            Grid.SetColumn(CompareCard, 0);
+            Grid.SetColumnSpan(CompareCard, 2);
+            Grid.SetRow(CompareCard, 0);
+            Grid.SetRowSpan(CompareCard, 1);
+            CompareCard.Margin = new Thickness(0, 0, 0, 10);
+            ComparePreview.MinHeight = 0;
+            ComparePreview.Height = 180;
+
+            Grid.SetColumn(SettingsCard, 0);
+            Grid.SetColumnSpan(SettingsCard, 2);
+            Grid.SetRow(SettingsCard, 1);
+            Grid.SetRowSpan(SettingsCard, 1);
+
+            Grid.SetColumn(EvidenceCard, 0);
+            Grid.SetColumnSpan(EvidenceCard, 2);
+            Grid.SetRow(EvidenceCard, 2);
+            Grid.SetRowSpan(EvidenceCard, 1);
+        }
+    }
 
     private void VideoSnapshotView_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
     {

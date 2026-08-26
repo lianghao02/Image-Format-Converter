@@ -7,6 +7,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $projectPath = Join-Path $root "src\PoliceImageToolkit\PoliceImageToolkit.csproj"
+$projectDir = Join-Path $root "src\PoliceImageToolkit"
 $destination = Join-Path $root $OutputDir
 
 # 自動定位 dotnet.exe (優先使用具有 SDK 的路徑)
@@ -30,6 +31,16 @@ Write-Output "Config:  $Configuration (win-x64 / Self-Contained Single-File)"
 Write-Output "Dotnet:  $dotnet"
 Write-Output ""
 
+# 清理舊的 bin / obj / dist 快取
+Write-Output "Cleaning previous build artifacts and cache..."
+$binDir = Join-Path $projectDir "bin"
+$objDir = Join-Path $projectDir "obj"
+if (Test-Path $binDir) { Remove-Item $binDir -Recurse -Force -ErrorAction SilentlyContinue }
+if (Test-Path $objDir) { Remove-Item $objDir -Recurse -Force -ErrorAction SilentlyContinue }
+if (Test-Path $destination) {
+    Get-ChildItem -Path $destination -File | Remove-Item -Force -ErrorAction SilentlyContinue
+}
+
 $sw = [System.Diagnostics.Stopwatch]::StartNew()
 
 & $dotnet publish $projectPath `
@@ -39,14 +50,34 @@ $sw = [System.Diagnostics.Stopwatch]::StartNew()
     -p:PublishSingleFile=true `
     -p:IncludeNativeLibrariesForSelfExtract=true `
     -p:EnableCompressionInSingleFile=true `
+    -p:DebugType=none `
+    -p:DebugSymbols=false `
     -o $destination
 
 if ($LASTEXITCODE -ne 0) {
     throw "Publish failed with exit code: $LASTEXITCODE"
 }
 
+# 清理殘留的 pdb 檔案 (若有)
+Get-ChildItem -Path $destination -Filter "*.pdb" | Remove-Item -Force -ErrorAction SilentlyContinue
+
 $sw.Stop()
 $exePath = Join-Path $destination "PoliceImageToolkit.exe"
+
+# 觸發 Windows Shell 重新整理圖示快取 (SHChangeNotify)
+try {
+    Add-Type -TypeDefinition @"
+    using System;
+    using System.Runtime.InteropServices;
+    public class ShellNotifier {
+        [DllImport("shell32.dll")]
+        public static extern void SHChangeNotify(int wEventId, uint uFlags, IntPtr dwItem1, IntPtr dwItem2);
+    }
+"@ -ErrorAction SilentlyContinue
+    [ShellNotifier]::SHChangeNotify(0x08000000, 0, [IntPtr]::Zero, [IntPtr]::Zero) # SHCNE_ASSOCCHANGED
+} catch {
+    # 忽略通知例外
+}
 
 if (Test-Path $exePath) {
     $item = Get-Item $exePath

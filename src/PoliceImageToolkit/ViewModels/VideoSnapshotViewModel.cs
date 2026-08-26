@@ -333,7 +333,6 @@ public class VideoSnapshotViewModel : ViewModelBase
         if (Snapshots.Count == 0) return;
 
         var last = Snapshots[0];
-        Snapshots.RemoveAt(0);
 
         try
         {
@@ -341,12 +340,20 @@ public class VideoSnapshotViewModel : ViewModelBase
             {
                 File.Delete(last.FilePath);
             }
+
+            if (File.Exists(last.FilePath))
+            {
+                StatusMessage = $"無法刪除截圖，檔案仍保留於：{last.FilePath}";
+                return;
+            }
         }
-        catch
+        catch (Exception ex)
         {
-            // 忽略刪除暫時被佔用的例外
+            StatusMessage = $"無法刪除截圖，清單已保留：{ex.Message}";
+            return;
         }
 
+        Snapshots.RemoveAt(0);
         LastCapturedSnapshot = Snapshots.FirstOrDefault();
         StatusMessage = $"已復原/刪除上一頁截圖：{Path.GetFileName(last.FilePath)}";
     }

@@ -6,9 +6,11 @@
              xmlns:models="clr-namespace:PoliceImageToolkit.Models"
              xmlns:services="clr-namespace:PoliceImageToolkit.Services"
              mc:Ignorable="d" 
-             d:DesignHeight="760" d:DesignWidth="1100"
-             AllowDrop="True"
-             Drop="UserControl_Drop"
+              d:DesignHeight="760" d:DesignWidth="1100"
+              AllowDrop="True"
+              Loaded="UserControl_Loaded"
+              SizeChanged="UserControl_SizeChanged"
+              Drop="UserControl_Drop"
              DragOver="UserControl_DragOver">
 
     <UserControl.Resources>
@@ -30,8 +32,8 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="🎬 手機影片對話錄影逐格截圖" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center" Margin="0,0,14,0"/>
-                    <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="{StaticResource AccentPrimary}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="🎬 手機影片對話錄影逐格截圖" Style="{StaticResource Heading2TextStyle}" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                    <TextBlock Text="{Binding StatusMessage}" Style="{StaticResource HelperTextStyle}" Foreground="{StaticResource AccentPrimary}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
@@ -41,14 +43,14 @@
             </Grid>
         </Border>
 
-        <!-- 主體內容 (左側手機大視窗工作台 + 右側上頁對照與控制) -->
+        <!-- 主體內容：左右等寬；左側優先保留手機影片辨識空間 -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="380"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- 左側：自適應大畫面手機圖框與播放容器 -->
+            <!-- 左側：最大化手機圖框與播放容器 -->
             <Border Grid.Column="0" Style="{StaticResource CardBorderStyle}" Margin="0,0,10,0" Padding="10">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -57,12 +59,12 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- 手機實體外框 (自適應大視窗，寬闊舒服，清晰可見對話) -->
-                    <Border Grid.Row="0" Width="360" MaxHeight="580" VerticalAlignment="Stretch"
-                            Background="#000000" BorderBrush="#334155" BorderThickness="5" 
-                            CornerRadius="28" ClipToBounds="True" HorizontalAlignment="Center"
-                            Effect="{StaticResource DropShadowPhone}">
-                        <Grid>
+                    <!-- 手機實體外框：大螢幕放大至 460 × 720，小視窗自動等比例縮小 -->
+                    <Viewbox Grid.Row="0" MaxWidth="460" MaxHeight="720" Stretch="Uniform"
+                             HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Border Width="460" Height="720" Background="#000000" BorderBrush="#334155" BorderThickness="5"
+                                CornerRadius="28" ClipToBounds="True" Effect="{StaticResource DropShadowPhone}">
+                            <Grid>
                             <!-- 影片播放器主畫面 (完美貼合手機內部螢幕) -->
                             <MediaElement x:Name="Player" LoadedBehavior="Manual" UnloadedBehavior="Stop"
                                           ScrubbingEnabled="True" Stretch="Uniform"
@@ -88,8 +90,9 @@
 
                             <!-- 快門白色閃爍回饋圖層 -->
                             <Border x:Name="FlashOverlay" Background="White" Opacity="0" Panel.ZIndex="20" IsHitTestVisible="False"/>
-                        </Grid>
-                    </Border>
+                            </Grid>
+                        </Border>
+                    </Viewbox>
 
                     <!-- 時間滑桿與時間戳顯示 -->
                     <Grid Grid.Row="1" Margin="6,12,6,8">
@@ -134,23 +137,31 @@
                 </Grid>
             </Border>
 
-            <!-- 右側：上頁末行對照 ＋ 案號設定 ＋ 證物截圖清單 -->
-            <Grid Grid.Column="1">
+            <!-- 右側：寬螢幕時分為對照直欄與設定/清單直欄；窄螢幕回復上下堆疊 -->
+            <Grid Grid.Column="1" x:Name="RightWorkspace">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="0"/>
                 </Grid.RowDefinitions>
 
-                <!-- 卡片 1：上頁末行對照 (鑑識比對防漏截核心) -->
-                <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}" Margin="0,0,0,10" Padding="12">
-                    <StackPanel>
-                        <Grid Margin="0,0,0,6">
-                            <TextBlock Text="🔄 上頁末行對照 (防漏截)" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center"/>
+                <!-- 卡片 1：上頁末行對照 (寬螢幕時占左側全高，放大直式對照圖) -->
+                <Border x:Name="CompareCard" Grid.Column="0" Grid.Row="0" Grid.RowSpan="3" Style="{StaticResource CardBorderStyle}" Margin="0,0,8,0" Padding="12">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0" Margin="0,0,0,6">
+                            <TextBlock Text="🔄 上頁末行對照 (防漏截)" Style="{StaticResource Heading3TextStyle}" VerticalAlignment="Center"/>
                             <TextBlock Text="{Binding LastCapturedSnapshot.Timestamp, StringFormat={}{0:hh\\:mm\\:ss\\.fff}}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource AccentSuccess}" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="Consolas, Segoe UI"/>
                         </Grid>
 
-                        <Border Height="140" Background="#050B14" CornerRadius="6" BorderBrush="{StaticResource BorderColor}" BorderThickness="1" ClipToBounds="True">
+                        <Border x:Name="ComparePreview" Grid.Row="1" MinHeight="300" Background="#050B14" CornerRadius="6" BorderBrush="{StaticResource BorderColor}" BorderThickness="1" ClipToBounds="True">
                             <Grid>
                                 <!-- 上一張截圖的預覽圖 -->
                                 <Image Source="{Binding LastCapturedSnapshot.Thumbnail}" Stretch="Uniform" 
@@ -164,13 +175,13 @@
                                 </StackPanel>
                             </Grid>
                         </Border>
-                    </StackPanel>
+                    </Grid>
                 </Border>
 
                 <!-- 卡片 2：案號與快照設定 -->
-                <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" Margin="0,0,0,10" Padding="12">
+                <Border x:Name="SettingsCard" Grid.Column="1" Grid.Row="0" Style="{StaticResource CardBorderStyle}" Margin="0,0,0,10" Padding="12">
                     <StackPanel>
-                        <TextBlock Text="⚙️ 快照與案號標籤" FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" Margin="0,0,0,8"/>
+                        <TextBlock Text="⚙️ 快照與案號標籤" Style="{StaticResource Heading3TextStyle}" Margin="0,0,0,8"/>
 
                         <!-- 自訂案號輸入 -->
                         <Grid Margin="0,0,0,8">
@@ -178,7 +189,7 @@
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="自訂案號：" Foreground="{StaticResource TextPrimary}" FontSize="12" VerticalAlignment="Center"/>
+                            <TextBlock Text="自訂案號：" Style="{StaticResource FormLabelTextStyle}" VerticalAlignment="Center"/>
                             <TextBox Grid.Column="1" Text="{Binding CasePrefix, UpdateSourceTrigger=PropertyChanged}" 
                                      Background="{StaticResource BgInput}" Foreground="{StaticResource TextPrimary}" 
                                      BorderBrush="{StaticResource BorderColor}" Padding="6,4" FontSize="12" Margin="6,0,0,0"/>
@@ -190,7 +201,7 @@
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="輸出格式：" Foreground="{StaticResource TextPrimary}" FontSize="12" VerticalAlignment="Center"/>
+                            <TextBlock Text="輸出格式：" Style="{StaticResource FormLabelTextStyle}" VerticalAlignment="Center"/>
                             <ComboBox Grid.Column="1" SelectedValuePath="Content" SelectedValue="{Binding OutputFormat}" Height="28" Margin="6,0,0,0">
                                 <ComboBoxItem Content="PNG" IsSelected="True"/>
                                 <ComboBoxItem Content="JPG"/>
@@ -210,7 +221,7 @@
                 </Border>
 
                 <!-- 卡片 3：已擷取證物佇列清單 -->
-                <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}" Padding="10">
+                <Border x:Name="EvidenceCard" Grid.Column="1" Grid.Row="1" Grid.RowSpan="2" Style="{StaticResource CardBorderStyle}" Padding="10">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -218,7 +229,7 @@
                         </Grid.RowDefinitions>
 
                         <Grid Grid.Row="0" Margin="0,0,0,6">
-                            <TextBlock Text="📁 已審核證物清單" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center"/>
+                            <TextBlock Text="📁 已審核證物清單" Style="{StaticResource Heading3TextStyle}" VerticalAlignment="Center"/>
                             <Button Content="清空" Command="{Binding ClearSnapshotsCommand}" Style="{StaticResource SecondaryButtonStyle}" 
                                     HorizontalAlignment="Right" Padding="6,2" FontSize="10"/>
                         </Grid>

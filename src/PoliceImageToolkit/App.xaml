@@ -8,6 +8,7 @@
         <local:BoolToVisibilityConverter x:Key="BoolToVisConverter"/>
         <local:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisConverter"/>
         <local:CountToVisibilityHiddenConverter x:Key="CountToVisHiddenConverter"/>
+        <local:NullToVisibilityConverter x:Key="NullToVisConverter"/>
 
         <!-- 主題色系定義 (現代深色/警務石板灰設計) -->
         <SolidColorBrush x:Key="BgPrimary" Color="#0F172A"/>
@@ -24,7 +25,42 @@
         <SolidColorBrush x:Key="AccentDanger" Color="#EF4444"/>
 
         <!-- 全域字型 -->
-        <FontFamily x:Key="AppFont">Microsoft JhengHei, Segoe UI, sans-serif</FontFamily>
+        <FontFamily x:Key="AppFont">Microsoft JhengHei UI, Microsoft JhengHei, Segoe UI, sans-serif</FontFamily>
+
+        <!-- 文字層級：H1 應用程式名稱、H2 工作區名稱、H3 卡片標題、標籤與輔助文字 -->
+        <Style x:Key="Heading1TextStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+        </Style>
+
+        <Style x:Key="Heading2TextStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+        </Style>
+
+        <Style x:Key="Heading3TextStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+        </Style>
+
+        <Style x:Key="FormLabelTextStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+        </Style>
+
+        <Style x:Key="HelperTextStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+        </Style>
 
         <!-- 基礎按鈕樣式 -->
         <Style x:Key="PrimaryButtonStyle" TargetType="Button">

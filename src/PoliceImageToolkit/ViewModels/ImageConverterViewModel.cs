@@ -35,7 +35,9 @@ public class ImageConverterViewModel : ViewModelBase
         StartConvertCommand = new RelayCommand(async _ => await ExecuteStartConvertAsync(), _ => !IsProcessing && Tasks.Count > 0);
         CancelConvertCommand = new RelayCommand(_ => ExecuteCancelConvert(), _ => IsProcessing);
         BrowseOutputDirectoryCommand = new RelayCommand(_ => ExecuteBrowseOutputDirectory());
-        OpenOutputDirectoryCommand = new RelayCommand(_ => ExecuteOpenOutputDirectory());
+        OpenOutputDirectoryCommand = new RelayCommand(
+            _ => ExecuteOpenOutputDirectory(),
+            _ => Tasks.Any(t => !string.IsNullOrEmpty(t.OutputPath)));
     }
 
     public ObservableCollection<ImageTaskItem> Tasks { get; }
@@ -238,6 +240,7 @@ public class ImageConverterViewModel : ViewModelBase
             IsProcessing = false;
             _cts?.Dispose();
             _cts = null;
+            CommandManager.InvalidateRequerySuggested();
         }
     }
 
@@ -288,6 +291,8 @@ public class ImageConverterViewModel : ViewModelBase
             long totalBytes = Tasks.Sum(t => t.SourceSizeBytes);
             SummaryText = $"已載入 {Tasks.Count} 張圖片 (合計 {FormatBytes(totalBytes)})";
         }
+
+        CommandManager.InvalidateRequerySuggested();
     }
 
     private static string FormatBytes(long bytes)

@@ -96,19 +96,31 @@ public partial class MainWindow : Window
 
     private void TabImage_Checked(object sender, RoutedEventArgs e)
     {
-        if (ViewImageConverter != null && ViewVideoSnapshot != null)
+        if (ViewImageConverter != null && ViewVideoSnapshot != null && ViewLongScreenshotSplit != null)
         {
             ViewImageConverter.Visibility = Visibility.Visible;
             ViewVideoSnapshot.Visibility = Visibility.Collapsed;
+            ViewLongScreenshotSplit.Visibility = Visibility.Collapsed;
         }
     }
 
     private void TabVideo_Checked(object sender, RoutedEventArgs e)
     {
-        if (ViewImageConverter != null && ViewVideoSnapshot != null)
+        if (ViewImageConverter != null && ViewVideoSnapshot != null && ViewLongScreenshotSplit != null)
         {
             ViewImageConverter.Visibility = Visibility.Collapsed;
             ViewVideoSnapshot.Visibility = Visibility.Visible;
+            ViewLongScreenshotSplit.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private void TabLongScreenshot_Checked(object sender, RoutedEventArgs e)
+    {
+        if (ViewImageConverter != null && ViewVideoSnapshot != null && ViewLongScreenshotSplit != null)
+        {
+            ViewImageConverter.Visibility = Visibility.Collapsed;
+            ViewVideoSnapshot.Visibility = Visibility.Collapsed;
+            ViewLongScreenshotSplit.Visibility = Visibility.Visible;
         }
     }
 }
