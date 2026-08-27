@@ -6,7 +6,7 @@
         xmlns:viewModels="clr-namespace:PoliceImageToolkit.ViewModels"
         xmlns:views="clr-namespace:PoliceImageToolkit.Views"
         mc:Ignorable="d"
-        Title="警務影像轉檔與手機影片截圖工具箱 (Police-Image-Toolkit v11.2.0)"
+        Title="{Binding AppTitle}"
         Icon="app.ico"
         Height="780" Width="1100"
         MinHeight="600" MinWidth="850"
@@ -72,7 +72,7 @@
                     </Border>
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="Police-Image-Toolkit" Style="{StaticResource Heading1TextStyle}" FontSize="18"/>
-                        <TextBlock Text="警務手機影像轉檔與逐格截圖系統 (v11.2.0)" Style="{StaticResource HelperTextStyle}"/>
+                        <TextBlock Text="{Binding CurrentVersionDisplay, StringFormat='警務手機影像轉檔與逐格截圖系統 ({0})'}" Style="{StaticResource HelperTextStyle}"/>
                     </StackPanel>
                 </StackPanel>
 
@@ -93,10 +93,25 @@
                                   Style="{StaticResource NavRadioButtonStyle}"/>
                 </StackPanel>
 
-                <!-- 右側環境狀態標籤 -->
-                <Border Grid.Column="2" Background="{StaticResource BgCard}" CornerRadius="12" Padding="10,4" VerticalAlignment="Center">
-                    <TextBlock Text="⚡ .NET 8 LTS / Win-x64 原生加速" FontSize="11" Foreground="{StaticResource AccentSuccess}"/>
-                </Border>
+                <!-- 右側版本徽章與檢查更新按鈕 -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- 版本徽章 (讀取自 version.txt) -->
+                    <Border Background="{StaticResource BgCard}" BorderBrush="{StaticResource BorderColor}" BorderThickness="1" 
+                            CornerRadius="12" Padding="9,4" Margin="0,0,8,0" VerticalAlignment="Center" ToolTip="目前安裝版本 (version.txt)">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="🏷️ " FontSize="10" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding CurrentVersionDisplay}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource AccentPrimary}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 檢查更新按鈕 -->
+                    <Button Command="{Binding CheckUpdateCommand}" Style="{StaticResource SecondaryButtonStyle}" 
+                            Padding="10,5" FontSize="11" VerticalAlignment="Center" ToolTip="連線 GitHub Release 檢查是否有新版本">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="🔄 檢查更新" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
             </Grid>
         </Border>
 
