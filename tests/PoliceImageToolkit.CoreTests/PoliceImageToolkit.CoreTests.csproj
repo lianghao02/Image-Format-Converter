@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\src\PoliceImageToolkit\Models\LongScreenshotPage.cs" Link="Models\LongScreenshotPage.cs" />
+    <Compile Include="..\..\src\PoliceImageToolkit\Services\ILongScreenshotService.cs" Link="Services\ILongScreenshotService.cs" />
+    <Compile Include="..\..\src\PoliceImageToolkit\Services\LongScreenshotService.cs" Link="Services\LongScreenshotService.cs" />
+    <Compile Include="..\..\src\PoliceImageToolkit\Services\IUpdateService.cs" Link="Services\IUpdateService.cs" />
+    <Compile Include="..\..\src\PoliceImageToolkit\Services\UpdateService.cs" Link="Services\UpdateService.cs" />
+  </ItemGroup>
+
+</Project>

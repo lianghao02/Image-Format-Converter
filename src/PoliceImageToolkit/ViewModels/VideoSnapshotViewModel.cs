@@ -49,6 +49,7 @@ public class VideoSnapshotViewModel : ViewModelBase
         BrowseOutputDirectoryCommand = new RelayCommand(_ => ExecuteBrowseOutputDirectory());
         OpenOutputFolderCommand = new RelayCommand(_ => ExecuteOpenOutputFolder());
         ClearSnapshotsCommand = new RelayCommand(_ => ExecuteClearSnapshots(), _ => Snapshots.Count > 0);
+        DeleteSnapshotFilesCommand = new RelayCommand(_ => ExecuteDeleteSnapshotFiles(), _ => Snapshots.Count > 0);
         UndoLastCaptureCommand = new RelayCommand(_ => ExecuteUndoLastCapture(), _ => Snapshots.Count > 0);
         CaptureSnapshotCommand = new RelayCommand(async _ => await CaptureSnapshotAsync(), _ => HasVideoLoaded && !_isCapturing);
     }
@@ -206,6 +207,7 @@ public class VideoSnapshotViewModel : ViewModelBase
     public ICommand BrowseOutputDirectoryCommand { get; }
     public ICommand OpenOutputFolderCommand { get; }
     public ICommand ClearSnapshotsCommand { get; }
+    public ICommand DeleteSnapshotFilesCommand { get; }
     public ICommand UndoLastCaptureCommand { get; }
     public ICommand CaptureSnapshotCommand { get; }
 
@@ -360,9 +362,57 @@ public class VideoSnapshotViewModel : ViewModelBase
 
     private void ExecuteClearSnapshots()
     {
+        int count = Snapshots.Count;
         Snapshots.Clear();
         LastCapturedSnapshot = null;
-        StatusMessage = "已清空所有截圖清單。";
+        StatusMessage = $"已清空本次截圖清單（保留磁碟上的 {count} 個檔案）。";
+    }
+
+    private void ExecuteDeleteSnapshotFiles()
+    {
+        int requestedCount = Snapshots.Count;
+        var choice = System.Windows.MessageBox.Show(
+            $"確定要刪除本次清單中的 {requestedCount} 個截圖檔案嗎？\n\n" +
+            "此動作不可復原，只會刪除目前清單中的衍生截圖，不會刪除來源影片。",
+            "刪除本次截圖檔案",
+            System.Windows.MessageBoxButton.YesNo,
+            System.Windows.MessageBoxImage.Warning);
+
+        if (choice != System.Windows.MessageBoxResult.Yes) return;
+
+        int deletedCount = 0;
+        int missingCount = 0;
+        int failedCount = 0;
+        var removable = new List<SnapshotResult>();
+
+        foreach (var snapshot in Snapshots)
+        {
+            try
+            {
+                if (File.Exists(snapshot.FilePath))
+                {
+                    File.Delete(snapshot.FilePath);
+                    deletedCount++;
+                }
+                else
+                {
+                    missingCount++;
+                }
+
+                removable.Add(snapshot);
+            }
+            catch
+            {
+                failedCount++;
+            }
+        }
+
+        foreach (var snapshot in removable) Snapshots.Remove(snapshot);
+        LastCapturedSnapshot = Snapshots.FirstOrDefault();
+
+        StatusMessage = failedCount == 0
+            ? $"已刪除 {deletedCount} 個截圖檔案；另有 {missingCount} 個檔案原本不存在。"
+            : $"已刪除 {deletedCount} 個截圖檔案；{failedCount} 個檔案無法刪除並保留在清單中。";
     }
 
     private void ExecuteBrowseOutputDirectory()

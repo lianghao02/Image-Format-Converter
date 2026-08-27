@@ -229,9 +229,16 @@
                         </Grid.RowDefinitions>
 
                         <Grid Grid.Row="0" Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
                             <TextBlock Text="📁 已審核證物清單" Style="{StaticResource Heading3TextStyle}" VerticalAlignment="Center"/>
-                            <Button Content="清空" Command="{Binding ClearSnapshotsCommand}" Style="{StaticResource SecondaryButtonStyle}" 
-                                    HorizontalAlignment="Right" Padding="6,2" FontSize="10"/>
+                            <Button Grid.Column="1" Content="清空清單（保留檔案）" Command="{Binding ClearSnapshotsCommand}" Style="{StaticResource SecondaryButtonStyle}"
+                                    Margin="0,0,6,0" Padding="6,2" FontSize="10" ToolTip="只移除本次介面清單，已儲存的截圖檔案會保留。"/>
+                            <Button Grid.Column="2" Content="刪除本次檔案..." Command="{Binding DeleteSnapshotFilesCommand}" Style="{StaticResource DangerButtonStyle}"
+                                    Padding="6,2" FontSize="10" ToolTip="刪除目前清單中的衍生截圖檔案，執行前會再次確認。"/>
                         </Grid>
 
                         <!-- 歷史列表 (含縮圖) -->

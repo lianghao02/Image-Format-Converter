@@ -73,6 +73,16 @@ public class MainViewModel : ViewModelBase
     {
         if (IsCheckingUpdate) return;
 
+        var consent = MessageBox.Show(
+            "此操作會連線至 GitHub Release 查詢最新版本與更新說明。\n\n" +
+            "不會上傳影片、影像、案號或任何本機檔案；程式平時不會自動檢查更新。\n\n" +
+            "是否繼續？",
+            "檢查更新前確認",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question);
+
+        if (consent != MessageBoxResult.Yes) return;
+
         IsCheckingUpdate = true;
         try
         {

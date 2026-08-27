@@ -9,7 +9,7 @@
 - **專案名稱**：警務手機影像轉檔與逐格截圖系統 (`Police-Image-Toolkit`)
 - **現行架構**：C# 13 / .NET 8 LTS / WPF (MVVM 架構)
 - **歷史演進**：原純前端網頁版（v10.0）已封存於 Git 提交歷史，工作區已全數移除，保持純粹的 C# WPF 單一專案結構。
-- **發行模式**：Self-Contained Single-File（單檔免安裝，大小約 69MB，路徑為 `dist/PoliceImageToolkit.exe`），零外部依賴、秒開、100% 離線本機處理。
+- **發行模式**：Self-Contained Single-File（主要執行檔約 69MB，路徑為 `dist/PoliceImageToolkit.exe`）。同目錄另有 `version.txt`、`SHA256SUMS.txt` 與 `使用說明.txt` 供版本辨識與交付驗證；影像與影片處理均在本機進行，只有使用者手動確認的更新檢查會連線至 GitHub Release。
 
 ---
 
@@ -37,7 +37,7 @@
 │       │   ├── ImageConverterView.xaml / .cs # 圖片轉檔介面
 │       │   └── VideoSnapshotView.xaml / .cs  # 自適應手機外框鑑識工作台
 │       └── ValueConverters.cs
-├── dist/                         # 發布目錄 (僅 PoliceImageToolkit.exe 單檔)
+├── dist/                         # 發布目錄（EXE、版本、SHA-256 與使用說明）
 ├── scripts/
 │   ├── build.ps1                 # 一鍵發布腳本 (清理快取、無 pdb、通知 Shell 更新圖示)
 │   └── qa.ps1                    # 自動化 QA 與編譯檢核腳本
@@ -99,6 +99,6 @@
 4. **單檔發布與進程鎖定**：
    - 發布前必須先透過腳本關閉既有 `PoliceImageToolkit` 進程，避免 `GenerateBundle` 因檔案被佔用拋出 `IOException`。
 5. **單檔乾淨度與雙主線禁止**：
-   - 發布設定已包含 `<DebugType>none</DebugType>` 與 `<DebugSymbols>false</DebugSymbols>`，確保 `dist/` 目錄只有單一 `PoliceImageToolkit.exe`。
+   - 發布設定已包含 `<DebugType>none</DebugType>` 與 `<DebugSymbols>false</DebugSymbols>`，確保 `dist/` 沒有 PDB；交付檔案為 `PoliceImageToolkit.exe`、`version.txt`、`SHA256SUMS.txt` 與 `使用說明.txt`。
    - 專案已全面統一為 C# WPF，不另行維護 Python 雙主線版本。
 

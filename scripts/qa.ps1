@@ -34,4 +34,12 @@ if (Test-Path $projectPath) {
     if ($LASTEXITCODE -ne 0) { throw "C# build verification failed." }
 }
 
+# 4. Core Service Tests
+$testScript = Join-Path $PSScriptRoot 'test.ps1'
+if (Test-Path $testScript) {
+    Write-Output "Running core service tests..."
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $testScript
+    if ($LASTEXITCODE -ne 0) { throw "Core service tests failed." }
+}
+
 Write-Output "Shared QA passed. Build and integrity checks normal."
