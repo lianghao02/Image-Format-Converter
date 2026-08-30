@@ -183,13 +183,13 @@
                     <StackPanel>
                         <TextBlock Text="⚙️ 快照與案號標籤" Style="{StaticResource Heading3TextStyle}" Margin="0,0,0,8"/>
 
-                        <!-- 自訂案號輸入 -->
+                        <!-- 選填檔名前綴 -->
                         <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="自訂案號：" Style="{StaticResource FormLabelTextStyle}" VerticalAlignment="Center"/>
+                            <TextBlock Text="檔名前綴（選填）：" Style="{StaticResource FormLabelTextStyle}" VerticalAlignment="Center"/>
                             <TextBox Grid.Column="1" Text="{Binding CasePrefix, UpdateSourceTrigger=PropertyChanged}" 
                                      Background="{StaticResource BgInput}" Foreground="{StaticResource TextPrimary}" 
                                      BorderBrush="{StaticResource BorderColor}" Padding="6,4" FontSize="12" Margin="6,0,0,0"/>
@@ -208,11 +208,11 @@
                             </ComboBox>
                         </Grid>
 
-                        <!-- 時間戳浮水印與子資料夾 -->
+                        <!-- 時間戳浮水印與輸出資料夾規則 -->
                         <CheckBox IsChecked="{Binding AddTimestampOverlay}" Content="烙印時間戳記浮水印 (hh:mm:ss.fff)" 
                                   Foreground="{StaticResource TextPrimary}" FontSize="11" Margin="0,0,0,4"/>
-                        <CheckBox IsChecked="{Binding AutoCreateSubfolder}" Content="依影片名稱自動建立子資料夾" 
-                                  Foreground="{StaticResource TextPrimary}" FontSize="11" Margin="0,0,0,6"/>
+                        <TextBlock Text="每部影片會自動建立獨立 Snapshots 資料夾，檔名依 001、002… 排序。"
+                                   Style="{StaticResource HelperTextStyle}" Margin="0,0,0,6" TextWrapping="Wrap"/>
 
                         <!-- 復原按鈕 -->
                         <Button Content="↩ 復原/刪除上一頁截圖 (Z 鍵)" Command="{Binding UndoLastCaptureCommand}"

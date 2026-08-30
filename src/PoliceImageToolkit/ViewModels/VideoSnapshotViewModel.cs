@@ -300,7 +300,8 @@ public class VideoSnapshotViewModel : ViewModelBase
                 JpgQuality = JpgQuality,
                 AddTimestampOverlay = AddTimestampOverlay,
                 IncludeMilliseconds = IncludeMilliseconds,
-                AutoCreateSubfolder = AutoCreateSubfolder,
+                // 每部影片固定輸出至自己的資料夾，流水號才可從 001 穩定排序。
+                AutoCreateSubfolder = true,
                 CasePrefix = CasePrefix
             };
 

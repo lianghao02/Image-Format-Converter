@@ -7,7 +7,8 @@ public record LongScreenshotSplitOptions(
     double FrameWidthCm,
     double FrameHeightCm,
     double OverlapMm,
-    string OutputDirectory);
+    string OutputDirectory,
+    string FileNamePrefix);
 
 public interface ILongScreenshotService
 {

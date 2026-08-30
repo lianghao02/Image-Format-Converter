@@ -48,16 +48,8 @@ public class VideoService : IVideoService
                 processedBitmap = RenderFrameWithTimestamp(processedBitmap, currentPosition, title, config.IncludeMilliseconds);
             }
 
-            // 2. 檔名構造
+            // 2. 檔名構造：預設純流水號，選填前綴才加在前方。
             string safeCasePrefix = SanitizeFileNameSegment(config.CasePrefix);
-            string prefix = string.IsNullOrWhiteSpace(safeCasePrefix)
-                ? config.Prefix
-                : $"{safeCasePrefix}_{config.Prefix}";
-
-            string timeStr = config.IncludeMilliseconds
-                ? $"{(int)currentPosition.TotalHours:00}-{currentPosition.Minutes:00}-{currentPosition.Seconds:00}_{currentPosition.Milliseconds:000}"
-                : $"{(int)currentPosition.TotalHours:00}-{currentPosition.Minutes:00}-{currentPosition.Seconds:00}";
-
             string ext = config.OutputFormat.ToLowerInvariant() == "jpg" ? "jpg" : "png";
             // 3. 編碼並存檔
             BitmapEncoder encoder = ext == "jpg"
@@ -66,7 +58,7 @@ public class VideoService : IVideoService
 
             encoder.Frames.Add(BitmapFrame.Create(processedBitmap));
 
-            using (var fs = CreateUniqueOutputFile(outDir, prefix, timeStr, ext, out reservedOutputPath))
+            using (var fs = CreateSequentialOutputFile(outDir, safeCasePrefix, ext, out reservedOutputPath))
             {
                 encoder.Save(fs);
             }
@@ -162,12 +154,14 @@ public class VideoService : IVideoService
         return renderBitmap;
     }
 
-    private static FileStream CreateUniqueOutputFile(string outputDirectory, string prefix, string timeStamp, string extension, out string outputPath)
+    private static FileStream CreateSequentialOutputFile(string outputDirectory, string prefix, string extension, out string outputPath)
     {
-        for (int counter = 0; ; counter++)
+        for (int sequence = 1; ; sequence++)
         {
-            string suffix = counter == 0 ? string.Empty : $"_{counter}";
-            string candidate = Path.Combine(outputDirectory, $"{prefix}{timeStamp}{suffix}.{extension}");
+            string fileName = string.IsNullOrWhiteSpace(prefix)
+                ? $"{sequence:000}.{extension}"
+                : $"{prefix}_{sequence:000}.{extension}";
+            string candidate = Path.Combine(outputDirectory, fileName);
             try
             {
                 var stream = new FileStream(candidate, FileMode.CreateNew, FileAccess.Write, FileShare.None);

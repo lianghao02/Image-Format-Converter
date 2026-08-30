@@ -62,13 +62,15 @@ public sealed class LongScreenshotService : ILongScreenshotService
         return await Task.Run(() =>
         {
             Directory.CreateDirectory(options.OutputDirectory);
-            string baseName = Path.GetFileNameWithoutExtension(sourceFilePath);
+            string fileNamePrefix = SanitizeFileNamePrefix(options.FileNamePrefix);
+            int startingSequence = FindNextSequence(options.OutputDirectory, fileNamePrefix, pages.Count);
             var outputPaths = new List<string>(pages.Count);
 
             foreach (var page in pages)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                string outputPath = ReserveOutputPath(options.OutputDirectory, baseName, page.PageNumber, pages.Count);
+                int sequence = startingSequence + page.PageNumber - 1;
+                string outputPath = Path.Combine(options.OutputDirectory, BuildFileName(fileNamePrefix, sequence));
                 try
                 {
                     var cropped = new CroppedBitmap(exportSource, new System.Windows.Int32Rect(0, page.SourceY, exportSource.PixelWidth, page.PixelHeight));
@@ -91,15 +93,28 @@ public sealed class LongScreenshotService : ILongScreenshotService
         }, cancellationToken);
     }
 
-    private static string ReserveOutputPath(string outputDirectory, string baseName, int pageNumber, int totalPages)
+    private static int FindNextSequence(string outputDirectory, string prefix, int pageCount)
     {
-        string pageSuffix = $"_{pageNumber:000}of{totalPages:000}";
-        for (int counter = 0; ; counter++)
+        for (int startingSequence = 1; ; startingSequence++)
         {
-            string collisionSuffix = counter == 0 ? string.Empty : $"_{counter}";
-            string candidate = Path.Combine(outputDirectory, $"{baseName}{pageSuffix}{collisionSuffix}.png");
-            if (!File.Exists(candidate)) return candidate;
+            bool hasCollision = Enumerable.Range(startingSequence, pageCount)
+                .Any(sequence => File.Exists(Path.Combine(outputDirectory, BuildFileName(prefix, sequence))));
+            if (!hasCollision) return startingSequence;
         }
+    }
+
+    private static string BuildFileName(string prefix, int sequence) => string.IsNullOrWhiteSpace(prefix)
+        ? $"{sequence:000}.png"
+        : $"{prefix}_{sequence:000}.png";
+
+    private static string SanitizeFileNamePrefix(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+        var invalidChars = Path.GetInvalidFileNameChars()
+            .Append(Path.DirectorySeparatorChar)
+            .Append(Path.AltDirectorySeparatorChar)
+            .ToHashSet();
+        return new string(value.Trim().Select(c => invalidChars.Contains(c) ? '_' : c).ToArray());
     }
 
     private static void ValidateOptions(LongScreenshotSplitOptions options)

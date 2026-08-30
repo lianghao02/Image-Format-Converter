@@ -17,6 +17,7 @@ public sealed class LongScreenshotSplitViewModel : ViewModelBase
     private string _sourceFilePath = string.Empty;
     private string _sourceFileName = "尚未載入長截圖";
     private string _outputDirectory = string.Empty;
+    private string _fileNamePrefix = string.Empty;
     private double _frameWidthCm = 8;
     private double _frameHeightCm = 17.5;
     private double _overlapMm = 5;
@@ -66,6 +67,12 @@ public sealed class LongScreenshotSplitViewModel : ViewModelBase
                 CommandManager.InvalidateRequerySuggested();
             }
         }
+    }
+
+    public string FileNamePrefix
+    {
+        get => _fileNamePrefix;
+        set => SetProperty(ref _fileNamePrefix, value);
     }
 
     public double FrameWidthCm
@@ -243,5 +250,5 @@ public sealed class LongScreenshotSplitViewModel : ViewModelBase
         }
     }
 
-    private LongScreenshotSplitOptions CreateOptions() => new(FrameWidthCm, FrameHeightCm, OverlapMm, ResolvedOutputDirectory);
+    private LongScreenshotSplitOptions CreateOptions() => new(FrameWidthCm, FrameHeightCm, OverlapMm, ResolvedOutputDirectory, FileNamePrefix);
 }

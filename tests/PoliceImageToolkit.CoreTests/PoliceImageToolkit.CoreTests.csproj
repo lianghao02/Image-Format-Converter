@@ -14,6 +14,9 @@
     <Compile Include="..\..\src\PoliceImageToolkit\Services\LongScreenshotService.cs" Link="Services\LongScreenshotService.cs" />
     <Compile Include="..\..\src\PoliceImageToolkit\Services\IUpdateService.cs" Link="Services\IUpdateService.cs" />
     <Compile Include="..\..\src\PoliceImageToolkit\Services\UpdateService.cs" Link="Services\UpdateService.cs" />
+    <Compile Include="..\..\src\PoliceImageToolkit\Models\VideoSnapshotConfig.cs" Link="Models\VideoSnapshotConfig.cs" />
+    <Compile Include="..\..\src\PoliceImageToolkit\Services\IVideoService.cs" Link="Services\IVideoService.cs" />
+    <Compile Include="..\..\src\PoliceImageToolkit\Services\VideoService.cs" Link="Services\VideoService.cs" />
   </ItemGroup>
 
 </Project>

@@ -103,6 +103,14 @@
                             <Button Content="📍 變更輸出路徑" Command="{Binding BrowseOutputDirectoryCommand}" Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,8,0"/>
                             <Button Content="📂 開啟輸出資料夾" Command="{Binding OpenOutputDirectoryCommand}" Style="{StaticResource SecondaryButtonStyle}"/>
                         </WrapPanel>
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="檔名前綴（選填）" Style="{StaticResource FormLabelTextStyle}" VerticalAlignment="Center"/>
+                            <TextBox Grid.Column="1" Text="{Binding FileNamePrefix, UpdateSourceTrigger=PropertyChanged}" Padding="6,4" Margin="8,0,0,0" ToolTip="留白即輸出 001.png、002.png；填寫後例如 A113_001.png。"/>
+                        </Grid>
                     </StackPanel>
                 </Border>
 
