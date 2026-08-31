@@ -1,4 +1,4 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param(
     [string]$Configuration = "Release",
     [string]$OutputDir = "dist"
@@ -63,7 +63,13 @@ Get-ChildItem -Path $destination -Filter "*.pdb" | Remove-Item -Force -ErrorActi
 $sw.Stop()
 $exePath = Join-Path $destination "PoliceImageToolkit.exe"
 $hashPath = Join-Path $destination "SHA256SUMS.txt"
-$guidePath = Join-Path $destination "使用說明.txt"
+$guidePath = Join-Path $destination "GUIDE.txt"
+$versionSrc = Join-Path $projectDir "version.txt"
+$versionDst = Join-Path $destination "version.txt"
+
+if (Test-Path $versionSrc) {
+    Copy-Item -LiteralPath $versionSrc -Destination $versionDst -Force
+}
 
 # 觸發 Windows Shell 重新整理圖示快取 (SHChangeNotify)
 try {
@@ -87,18 +93,18 @@ if (Test-Path $exePath) {
     Set-Content -LiteralPath $hashPath -Value "$sha256 *$($item.Name)" -Encoding utf8
 
     $guide = @"
-Police Image Toolkit 可攜版使用說明
-====================================
+Police Image Toolkit Portable Edition Guide (v11.3.0)
+======================================================
 
 1. 支援 Windows 10 / 11 64 位元；不需安裝 .NET Runtime。
 2. 將本資料夾完整複製到可寫入的位置後，雙擊 PoliceImageToolkit.exe。
 3. 本機處理影像與影片；不會自動連線。只有使用者按下「檢查更新」並確認後，才會查詢 GitHub Release。
 4. 若 Windows SmartScreen 顯示提示，請先確認檔案來源與下列 SHA-256 值，再選擇是否執行。
 
-SHA-256
+SHA-256:
 $sha256
 
-命令列驗證：
+命令列驗證指令：
 Get-FileHash .\PoliceImageToolkit.exe -Algorithm SHA256
 "@
     Set-Content -LiteralPath $guidePath -Value $guide -Encoding utf8

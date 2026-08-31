@@ -83,6 +83,11 @@
 - **原圖低解析度警示**：
   - 當長截圖來源像素寬度低於 `600px` 時，介面以黃色常駐警示提醒文字放進 Word 可能模糊，並提示改用原始檔傳送（如 Telegram 請選「以檔案傳送」避免壓縮）。
 
+### 3.4 自動檢查更新與版本宣告 (UpdateService)
+- **版本宣告來源**：`src/PoliceImageToolkit/version.txt`（優先讀取本機檔案，備援組件資源）。
+- **非同步 GitHub API**：呼叫 `https://api.github.com/repos/lianghao02/Police-Image-Toolkit/releases/latest`，設定 6 秒逾時與 User-Agent，解析 `tag_name` 進行語義版本比對。
+- **UI 與安全性**：最新版彈出確認資訊框；新版本跳出 Release 說明並引導前往下載；離線/逾時友善提示，絕不阻礙本機離線影像處理。
+
 ---
 
 ## 🚨 4. 關鍵踩坑與防禦規則 (Agent 注意事項)
@@ -101,4 +106,13 @@
 5. **單檔乾淨度與雙主線禁止**：
    - 發布設定已包含 `<DebugType>none</DebugType>` 與 `<DebugSymbols>false</DebugSymbols>`，確保 `dist/` 沒有 PDB；交付檔案為 `PoliceImageToolkit.exe`、`version.txt`、`SHA256SUMS.txt` 與 `使用說明.txt`。
    - 專案已全面統一為 C# WPF，不另行維護 Python 雙主線版本。
+
+---
+
+## 🔮 5. 下一版規劃路線圖 (Roadmap for v11.4.0)
+
+1. **Photo-Report-Generator 連動索引檔（`report_index.json` / CSV）**：截圖完成時自動產出中繼檔，自動帶入影片真實建立時間與頁碼，實現報告書製作零摩擦。
+2. **手機螢幕滑鼠滾輪步進（Mouse Wheel Scrubbing）**：游標置於手機框時滾輪向上/向下直接前後 0.1 秒步進，達成「右手滾輪定位、左手 Space 秒截」極速盲操。
+3. **多倍速播放切換（1.0x / 1.5x / 2.0x）**：長影片快速瀏覽跳轉涉案段落。
+4. **長截圖分頁切線上下微調（±20px）**：手動拖曳微調避開切割貼圖與關鍵轉帳單據本體。
 

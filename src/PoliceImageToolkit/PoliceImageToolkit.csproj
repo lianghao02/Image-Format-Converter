@@ -8,9 +8,9 @@
     <UseWPF>true</UseWPF>
     <RootNamespace>PoliceImageToolkit</RootNamespace>
     <AssemblyName>PoliceImageToolkit</AssemblyName>
-    <Version>11.2.0</Version>
-    <FileVersion>11.2.0.0</FileVersion>
-    <AssemblyVersion>11.2.0.0</AssemblyVersion>
+    <Version>11.3.0</Version>
+    <FileVersion>11.3.0.0</FileVersion>
+    <AssemblyVersion>11.3.0.0</AssemblyVersion>
     <ApplicationIcon>app.ico</ApplicationIcon>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>

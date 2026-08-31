@@ -1,5 +1,24 @@
 # 變更紀錄 (CHANGELOG)
 
+## 🔮 未來展望 (Roadmap for v11.4.0)
+- **Photo-Report-Generator 連動索引**：影片截圖完成時自動產出結構化中繼檔（`report_index.json` / CSV），記載影片拍攝時間、頁碼序號與檔案對應，實現報告書製作自動化。
+- **滑鼠滾輪逐格步進 (Mouse Wheel Scrubbing)**：手機預覽螢幕支援滑鼠滾輪向上/向下微調 0.1 秒，達成「右手滾輪定位、左手 Space 秒截」極速盲操。
+- **多倍速播放切換 (1.0x / 1.5x / 2.0x)**：長影片快速瀏覽跳轉涉案段落。
+- **長截圖分頁切線微調 (±20px)**：手動拖曳避開切割貼圖與關鍵轉帳單據本體。
+
+## 🚀 v11.3.0 (2026-08-31)
+- **版本宣告與徽章體系**：
+  - 新增 `src/PoliceImageToolkit/version.txt` 宣告檔，建置與發布時同步輸出至 `dist/version.txt`。
+  - 主介面右上角動態載入版本徽章膠囊標籤，清楚標示當前安裝版本。
+- **GitHub Release 自動檢查更新**：
+  - 新增 `IUpdateService` 與 `UpdateService`，點擊『🔄 檢查更新』非同步向 GitHub Release API 查詢最新發行資訊。
+  - **最新版提示**：若已是最新版，跳出資訊框確認目前版本狀態。
+  - **發現新版提示**：展示新版版號與更新重點摘要，確認後直接導引至 GitHub 下載頁面或直接取得單檔。
+  - **離線與網路防護**：公務封閉內網或連線逾時（6 秒）時顯示友善提醒，防範程式崩潰或未預期例外。
+- **專案結構純化**：
+  - 徹底移除舊版純前端封存（`legacy_web/`）與根目錄冗餘檔案，確認為純粹的 C# WPF 單一專案結構。
+  - 補強 `.gitignore` 支援深層 `**/bin/`、`**/obj/`、`crash.log` 等快取過濾。
+
 ## 🚀 v11.2.0 (2026-08-26)
 - **長截圖分頁輔助（第三個分頁）**：
   - 新增 `LongScreenshotSplitView` 與 `LongScreenshotSplitViewModel`，支援將超長手機對話截圖依 Word/Photo-Report-Generator 圖框比例（預設 `8 cm × 17.5 cm`、重疊 `5 mm`）切分為連續衍生圖片。
