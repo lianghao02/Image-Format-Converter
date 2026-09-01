@@ -93,7 +93,7 @@ if (Test-Path $exePath) {
     Set-Content -LiteralPath $hashPath -Value "$sha256 *$($item.Name)" -Encoding utf8
 
     $guide = @"
-Police Image Toolkit Portable Edition Guide (v11.3.0)
+Police Image Toolkit Portable Edition Guide (v11.3.1)
 ======================================================
 
 1. 支援 Windows 10 / 11 64 位元；不需安裝 .NET Runtime。

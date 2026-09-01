@@ -2,6 +2,8 @@
 
 ## 未發布
 
+## 🏆 v11.3.1 (2026-09-01)
+
 - **QA 相容性**：`scripts/qa.ps1` 執行核心服務測試時優先使用 PowerShell 7；未安裝時自動退回 Windows PowerShell 5.1。
 
 ## 🔮 未來展望 (Roadmap for v11.4.0)

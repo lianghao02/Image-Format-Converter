@@ -1,6 +1,6 @@
-# 🛡️ 警務手機影像轉檔與逐格截圖系統 Police-Image-Toolkit (v11.3.0)
+# 🛡️ 警務手機影像轉檔與逐格截圖系統 Police-Image-Toolkit (v11.3.1)
 
-[![Version](https://img.shields.io/badge/version-v11.3.0-blue.svg)](https://github.com/lianghao02/Police-Image-Toolkit/releases)
+[![Version](https://img.shields.io/badge/version-v11.3.1-blue.svg)](https://github.com/lianghao02/Police-Image-Toolkit/releases)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20x64-0078D6.svg)](https://microsoft.com/windows)
 [![.NET](https://img.shields.io/badge/.NET-8.0%20LTS-purple.svg)](https://dotnet.microsoft.com)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -16,7 +16,7 @@
 | 下載項目 | 格式 | 說明 | 連結 |
 |:---|:---:|:---|:---:|
 | **PoliceImageToolkit.exe** | `.exe` | **推薦**。免安裝單一執行檔，下載後直接雙擊開啟 | [⬇️ 點此直接下載（最新版）](https://github.com/lianghao02/Police-Image-Toolkit/releases/latest/download/PoliceImageToolkit.exe) |
-| **PoliceImageToolkit-v11.3.0-win-x64.zip** | `.zip` | 壓縮包（適用於被瀏覽器或端點限制直接下載 exe 之環境） | [📦 點此下載 ZIP 壓縮檔](https://github.com/lianghao02/Police-Image-Toolkit/releases/latest/download/PoliceImageToolkit-v11.3.0-win-x64.zip) |
+| **PoliceImageToolkit-v11.3.1-win-x64.zip** | `.zip` | 壓縮包（適用於被瀏覽器或端點限制直接下載 exe 之環境） | [📦 點此下載 ZIP 壓縮檔](https://github.com/lianghao02/Police-Image-Toolkit/releases/latest/download/PoliceImageToolkit-v11.3.1-win-x64.zip) |
 
 > 🔗 想下載歷史版本或查看詳細更新紀錄，請至 [GitHub Releases 頁面](https://github.com/lianghao02/Police-Image-Toolkit/releases)。
 
@@ -120,7 +120,7 @@
 ├── src/
 │   └── PoliceImageToolkit/       # 🚀【C# .NET 8 WPF 原生桌面專案】
 │       ├── app.ico / app_icon.png# 專屬警務鑑識圖示
-│       ├── version.txt           # 當前版本宣告檔 (v11.3.0)
+│       ├── version.txt           # 當前版本宣告檔 (v11.3.1)
 │       ├── Models/               # 轉檔、影片快照與長截圖分頁資料模型
 │       ├── Services/             # 轉檔、影片截圖、長截圖裁切與更新檢查引擎
 │       ├── ViewModels/           # MVVM 架構邏輯
