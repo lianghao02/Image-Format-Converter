@@ -3,6 +3,8 @@ param()
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $safe = $root.Replace('\', '/')
+$powerShell7 = Get-Command 'pwsh.exe' -ErrorAction SilentlyContinue | Select-Object -First 1
+$projectPowerShell = if ($powerShell7) { $powerShell7.Source } else { 'powershell.exe' }
 
 # 1. Git Diff Check
 & git -c "safe.directory=$safe" -C $root diff --check
@@ -38,7 +40,7 @@ if (Test-Path $projectPath) {
 $testScript = Join-Path $PSScriptRoot 'test.ps1'
 if (Test-Path $testScript) {
     Write-Output "Running core service tests..."
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $testScript
+    & $projectPowerShell -NoProfile -ExecutionPolicy Bypass -File $testScript
     if ($LASTEXITCODE -ne 0) { throw "Core service tests failed." }
 }
 

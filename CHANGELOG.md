@@ -1,5 +1,9 @@
 # 變更紀錄 (CHANGELOG)
 
+## 未發布
+
+- **QA 相容性**：`scripts/qa.ps1` 執行核心服務測試時優先使用 PowerShell 7；未安裝時自動退回 Windows PowerShell 5.1。
+
 ## 🔮 未來展望 (Roadmap for v11.4.0)
 - **Photo-Report-Generator 連動索引**：影片截圖完成時自動產出結構化中繼檔（`report_index.json` / CSV），記載影片拍攝時間、頁碼序號與檔案對應，實現報告書製作自動化。
 - **滑鼠滾輪逐格步進 (Mouse Wheel Scrubbing)**：手機預覽螢幕支援滑鼠滾輪向上/向下微調 0.1 秒，達成「右手滾輪定位、左手 Space 秒截」極速盲操。
