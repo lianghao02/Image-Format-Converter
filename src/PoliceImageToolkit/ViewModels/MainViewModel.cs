@@ -12,7 +12,7 @@ public class MainViewModel : ViewModelBase
     private string _currentVersionDisplay = "v11.2.0";
     private bool _isCheckingUpdate = false;
 
-    public MainViewModel() : this(new ImageService(), new VideoService(), new LongScreenshotService(), new UpdateService())
+    public MainViewModel() : this(new ImageService(), new VideoService(), new LongScreenshotService(), new OutputIndexService(), new UpdateService())
     {
     }
 
@@ -20,13 +20,14 @@ public class MainViewModel : ViewModelBase
         IImageService imageService,
         IVideoService videoService,
         ILongScreenshotService longScreenshotService,
+        IOutputIndexService outputIndexService,
         IUpdateService updateService)
     {
         _updateService = updateService;
 
-        ImageConverter = new ImageConverterViewModel(imageService);
-        VideoSnapshot = new VideoSnapshotViewModel(videoService);
-        LongScreenshotSplit = new LongScreenshotSplitViewModel(longScreenshotService);
+        ImageConverter = new ImageConverterViewModel(imageService, outputIndexService);
+        VideoSnapshot = new VideoSnapshotViewModel(videoService, outputIndexService);
+        LongScreenshotSplit = new LongScreenshotSplitViewModel(longScreenshotService, outputIndexService);
 
         CurrentVersionDisplay = _updateService.GetInstalledVersion();
         CheckUpdateCommand = new RelayCommand(async _ => await ExecuteCheckUpdateAsync(), _ => !IsCheckingUpdate);

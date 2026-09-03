@@ -17,6 +17,8 @@ public class ImageTaskItem : ViewModelBase
     private double _progress = 0;
     private string _outputPath = string.Empty;
     private long _outputSizeBytes = 0;
+    private int _outputWidth;
+    private int _outputHeight;
     private TimeSpan _elapsed = TimeSpan.Zero;
 
     public required string FilePath { get; init; }
@@ -52,6 +54,18 @@ public class ImageTaskItem : ViewModelBase
     {
         get => _outputSizeBytes;
         set => SetProperty(ref _outputSizeBytes, value);
+    }
+
+    public int OutputWidth
+    {
+        get => _outputWidth;
+        set => SetProperty(ref _outputWidth, value);
+    }
+
+    public int OutputHeight
+    {
+        get => _outputHeight;
+        set => SetProperty(ref _outputHeight, value);
     }
 
     public TimeSpan Elapsed

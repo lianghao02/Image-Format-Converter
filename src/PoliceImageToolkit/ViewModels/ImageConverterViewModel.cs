@@ -12,6 +12,7 @@ namespace PoliceImageToolkit.ViewModels;
 public class ImageConverterViewModel : ViewModelBase
 {
     private readonly IImageService _imageService;
+    private readonly IOutputIndexService _outputIndexService;
     private CancellationTokenSource? _cts;
 
     private string _targetFormat = "JPG";
@@ -24,9 +25,10 @@ public class ImageConverterViewModel : ViewModelBase
     private double _overallProgress = 0;
     private string _summaryText = "請拖曳圖片或點擊「新增檔案」開始";
 
-    public ImageConverterViewModel(IImageService imageService)
+    public ImageConverterViewModel(IImageService imageService, IOutputIndexService outputIndexService)
     {
         _imageService = imageService;
+        _outputIndexService = outputIndexService;
         Tasks = new ObservableCollection<ImageTaskItem>();
 
         AddFilesCommand = new RelayCommand(_ => ExecuteAddFiles(), _ => !IsProcessing);
@@ -225,7 +227,8 @@ public class ImageConverterViewModel : ViewModelBase
 
             sw.Stop();
             int successCount = Tasks.Count(t => t.Status == TaskStatus.Success);
-            SummaryText = $"轉檔完成！成功: {successCount} 筆，失敗: {total - successCount} 筆 (總耗時: {sw.Elapsed.TotalSeconds:0.##} 秒)";
+            string indexStatus = await UpdateOutputIndexesAsync();
+            SummaryText = $"轉檔完成！成功: {successCount} 筆，失敗: {total - successCount} 筆 (總耗時: {sw.Elapsed.TotalSeconds:0.##} 秒){indexStatus}";
         }
         catch (OperationCanceledException)
         {
@@ -247,6 +250,41 @@ public class ImageConverterViewModel : ViewModelBase
     private void ExecuteCancelConvert()
     {
         _cts?.Cancel();
+    }
+
+    private async Task<string> UpdateOutputIndexesAsync()
+    {
+        var groups = Tasks
+            .Where(task => task.Status == TaskStatus.Success && !string.IsNullOrWhiteSpace(task.OutputPath))
+            .GroupBy(task => Path.GetDirectoryName(task.OutputPath)!)
+            .ToList();
+        if (groups.Count == 0) return string.Empty;
+
+        int updated = 0;
+        int failed = 0;
+        foreach (var group in groups)
+        {
+            try
+            {
+                var entries = group.Select(task => new OutputIndexEntry(
+                    Path.GetFileName(task.OutputPath),
+                    task.FileName,
+                    "image_conversion",
+                    null,
+                    task.OutputWidth,
+                    task.OutputHeight));
+                await _outputIndexService.AppendEntriesAsync(group.Key, entries);
+                updated++;
+            }
+            catch
+            {
+                failed++;
+            }
+        }
+
+        return failed == 0
+            ? $"；已更新 {updated} 個輸出索引"
+            : $"；{failed} 個輸出索引未更新（影像已保留）";
     }
 
     private void ExecuteBrowseOutputDirectory()

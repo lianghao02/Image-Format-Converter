@@ -13,6 +13,7 @@ public sealed class LongScreenshotSplitViewModel : ViewModelBase
     private const long MaximumDecodedPixels = 100_000_000;
     private const int MinimumRecommendedWidthPixels = 600;
     private readonly ILongScreenshotService _splitService;
+    private readonly IOutputIndexService _outputIndexService;
     private BitmapSource? _sourceImage;
     private string _sourceFilePath = string.Empty;
     private string _sourceFileName = "尚未載入長截圖";
@@ -25,9 +26,10 @@ public sealed class LongScreenshotSplitViewModel : ViewModelBase
     private bool _isExporting;
     private bool _hasLowResolutionWarning;
 
-    public LongScreenshotSplitViewModel(ILongScreenshotService splitService)
+    public LongScreenshotSplitViewModel(ILongScreenshotService splitService, IOutputIndexService outputIndexService)
     {
         _splitService = splitService;
+        _outputIndexService = outputIndexService;
         Pages = new ObservableCollection<LongScreenshotPage>();
 
         OpenImageCommand = new RelayCommand(_ => ExecuteOpenImage(), _ => !IsExporting);
@@ -237,7 +239,25 @@ public sealed class LongScreenshotSplitViewModel : ViewModelBase
         try
         {
             var paths = await _splitService.ExportPagesAsync(SourceImage, Pages.ToList(), SourceFilePath, CreateOptions());
-            StatusMessage = $"已匯出 {paths.Count} 張 PNG：{ResolvedOutputDirectory}";
+            string indexStatus;
+            try
+            {
+                var entries = paths.Select((path, index) => new OutputIndexEntry(
+                    Path.GetFileName(path),
+                    Path.GetFileName(SourceFilePath),
+                    "long_screenshot_split",
+                    null,
+                    SourceImage.PixelWidth,
+                    Pages[index].PixelHeight));
+                await _outputIndexService.AppendEntriesAsync(ResolvedOutputDirectory, entries);
+                indexStatus = "；追溯索引已更新";
+            }
+            catch
+            {
+                indexStatus = "；追溯索引未更新（圖片已保留）";
+            }
+
+            StatusMessage = $"已匯出 {paths.Count} 張 PNG：{ResolvedOutputDirectory}{indexStatus}";
         }
         catch (Exception ex)
         {

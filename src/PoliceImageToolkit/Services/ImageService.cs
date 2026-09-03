@@ -114,6 +114,8 @@ public class ImageService : IImageService
 
                 item.OutputPath = reservedOutputPath;
                 item.OutputSizeBytes = outInfo.Length;
+                item.OutputWidth = processedBitmap.PixelWidth;
+                item.OutputHeight = processedBitmap.PixelHeight;
                 item.Elapsed = sw.Elapsed;
                 item.Progress = 100;
                 item.Status = TaskStatus.Success;

@@ -12,6 +12,7 @@ namespace PoliceImageToolkit.ViewModels;
 public class VideoSnapshotViewModel : ViewModelBase
 {
     private readonly IVideoService _videoService;
+    private readonly IOutputIndexService _outputIndexService;
 
     private string _videoPath = string.Empty;
     private string _videoTitle = "尚未載入影片";
@@ -34,9 +35,10 @@ public class VideoSnapshotViewModel : ViewModelBase
     private SnapshotResult? _lastCapturedSnapshot;
     private bool _isCapturing = false;
 
-    public VideoSnapshotViewModel(IVideoService videoService)
+    public VideoSnapshotViewModel(IVideoService videoService, IOutputIndexService outputIndexService)
     {
         _videoService = videoService;
+        _outputIndexService = outputIndexService;
         Snapshots = new ObservableCollection<SnapshotResult>();
 
         OpenVideoCommand = new RelayCommand(_ => ExecuteOpenVideo());
@@ -49,8 +51,8 @@ public class VideoSnapshotViewModel : ViewModelBase
         BrowseOutputDirectoryCommand = new RelayCommand(_ => ExecuteBrowseOutputDirectory());
         OpenOutputFolderCommand = new RelayCommand(_ => ExecuteOpenOutputFolder());
         ClearSnapshotsCommand = new RelayCommand(_ => ExecuteClearSnapshots(), _ => Snapshots.Count > 0);
-        DeleteSnapshotFilesCommand = new RelayCommand(_ => ExecuteDeleteSnapshotFiles(), _ => Snapshots.Count > 0);
-        UndoLastCaptureCommand = new RelayCommand(_ => ExecuteUndoLastCapture(), _ => Snapshots.Count > 0);
+        DeleteSnapshotFilesCommand = new RelayCommand(async _ => await ExecuteDeleteSnapshotFilesAsync(), _ => Snapshots.Count > 0);
+        UndoLastCaptureCommand = new RelayCommand(async _ => await ExecuteUndoLastCaptureAsync(), _ => Snapshots.Count > 0);
         CaptureSnapshotCommand = new RelayCommand(async _ => await CaptureSnapshotAsync(), _ => HasVideoLoaded && !_isCapturing);
     }
 
@@ -309,13 +311,30 @@ public class VideoSnapshotViewModel : ViewModelBase
 
             // 3. 背景非同步存檔，不阻礙後續移動與播放
             var res = await _videoService.SaveFrameSnapshotAsync(frame, capturePos, VideoPath, config);
+            string indexStatus;
+            try
+            {
+                await _outputIndexService.AppendEntriesAsync(Path.GetDirectoryName(res.FilePath)!,
+                [new OutputIndexEntry(
+                    Path.GetFileName(res.FilePath),
+                    Path.GetFileName(VideoPath),
+                    "video_snapshot",
+                    res.Timestamp.ToString("hh\\:mm\\:ss\\.fff"),
+                    res.Width,
+                    res.Height)]);
+                indexStatus = "；追溯索引已更新";
+            }
+            catch
+            {
+                indexStatus = "；追溯索引未更新（截圖已保留）";
+            }
 
             // 4. 更新 UI 與「上頁末行對照圖」
             App.Current.Dispatcher.Invoke(() =>
             {
                 Snapshots.Insert(0, res);
                 LastCapturedSnapshot = res;
-                StatusMessage = $"📸 已擷取證物：{Path.GetFileName(res.FilePath)} (⏱ {res.Timestamp:hh\\:mm\\:ss\\.fff}) - 可繼續按 → 移動或 Space 截圖";
+                StatusMessage = $"📸 已擷取證物：{Path.GetFileName(res.FilePath)} (⏱ {res.Timestamp:hh\\:mm\\:ss\\.fff}){indexStatus} - 可繼續按 → 移動或 Space 截圖";
             });
 
             return res;
@@ -331,7 +350,7 @@ public class VideoSnapshotViewModel : ViewModelBase
         }
     }
 
-    public void ExecuteUndoLastCapture()
+    public async Task ExecuteUndoLastCaptureAsync()
     {
         if (Snapshots.Count == 0) return;
 
@@ -356,9 +375,19 @@ public class VideoSnapshotViewModel : ViewModelBase
             return;
         }
 
+        string indexStatus = string.Empty;
+        try
+        {
+            await _outputIndexService.RemoveEntriesAsync(Path.GetDirectoryName(last.FilePath)!, [Path.GetFileName(last.FilePath)]);
+        }
+        catch
+        {
+            indexStatus = "；追溯索引未更新";
+        }
+
         Snapshots.RemoveAt(0);
         LastCapturedSnapshot = Snapshots.FirstOrDefault();
-        StatusMessage = $"已復原/刪除上一頁截圖：{Path.GetFileName(last.FilePath)}";
+        StatusMessage = $"已復原/刪除上一頁截圖：{Path.GetFileName(last.FilePath)}{indexStatus}";
     }
 
     private void ExecuteClearSnapshots()
@@ -369,7 +398,7 @@ public class VideoSnapshotViewModel : ViewModelBase
         StatusMessage = $"已清空本次截圖清單（保留磁碟上的 {count} 個檔案）。";
     }
 
-    private void ExecuteDeleteSnapshotFiles()
+    private async Task ExecuteDeleteSnapshotFilesAsync()
     {
         int requestedCount = Snapshots.Count;
         var choice = System.Windows.MessageBox.Show(
@@ -411,9 +440,22 @@ public class VideoSnapshotViewModel : ViewModelBase
         foreach (var snapshot in removable) Snapshots.Remove(snapshot);
         LastCapturedSnapshot = Snapshots.FirstOrDefault();
 
+        string indexStatus = string.Empty;
+        try
+        {
+            foreach (var group in removable.GroupBy(snapshot => Path.GetDirectoryName(snapshot.FilePath)!))
+            {
+                await _outputIndexService.RemoveEntriesAsync(group.Key, group.Select(snapshot => Path.GetFileName(snapshot.FilePath)));
+            }
+        }
+        catch
+        {
+            indexStatus = "；追溯索引未更新";
+        }
+
         StatusMessage = failedCount == 0
-            ? $"已刪除 {deletedCount} 個截圖檔案；另有 {missingCount} 個檔案原本不存在。"
-            : $"已刪除 {deletedCount} 個截圖檔案；{failedCount} 個檔案無法刪除並保留在清單中。";
+            ? $"已刪除 {deletedCount} 個截圖檔案；另有 {missingCount} 個檔案原本不存在。{indexStatus}"
+            : $"已刪除 {deletedCount} 個截圖檔案；{failedCount} 個檔案無法刪除並保留在清單中。{indexStatus}";
     }
 
     private void ExecuteBrowseOutputDirectory()
@@ -431,11 +473,16 @@ public class VideoSnapshotViewModel : ViewModelBase
 
     private void ExecuteOpenOutputFolder()
     {
-        string dir = !string.IsNullOrWhiteSpace(OutputDirectory)
-            ? OutputDirectory
-            : (Snapshots.FirstOrDefault() is { } s ? Path.GetDirectoryName(s.FilePath) : null)
-              ?? (HasVideoLoaded ? Path.GetDirectoryName(VideoPath) : null)
-              ?? Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+        string? capturedDirectory = Snapshots.FirstOrDefault() is { } snapshot
+            ? Path.GetDirectoryName(snapshot.FilePath)
+            : null;
+        string? configuredSnapshotDirectory = HasVideoLoaded && !string.IsNullOrWhiteSpace(OutputDirectory)
+            ? Path.Combine(OutputDirectory, $"{Path.GetFileNameWithoutExtension(VideoPath)}_Snapshots")
+            : null;
+        string dir = capturedDirectory
+            ?? configuredSnapshotDirectory
+            ?? (HasVideoLoaded ? Path.Combine(Path.GetDirectoryName(VideoPath) ?? string.Empty, $"{Path.GetFileNameWithoutExtension(VideoPath)}_Snapshots") : null)
+            ?? Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
         if (Directory.Exists(dir))
         {
